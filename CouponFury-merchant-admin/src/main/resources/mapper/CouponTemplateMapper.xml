@@ -25,7 +25,7 @@
             insert into t_coupon_template
                 (name, shop_number, source, target, goods, type, valid_start_time, valid_end_time, stock, receive_rule, consume_rule, status, create_time, update_time, del_flag)
             values
-                (#{name}, #{shopNumber}, #{source}, #{target}, #{goods}, #{type}, #{validStartTime}, #{validEndTime}, #{stock}, #{receiveRule}, #{consumeRule}, #{status}, #{createTime}, #{updateTime}, #{delFlag})
+                (#{name}, #{shopNumber}, #{source}, #{target}, #{goods}, #{type}, #{validStartTime}, #{validEndTime}, #{stock}, #{receiveRule}, #{consumeRule}, #{status}, now(), now(), #{delFlag})
     </insert>
 
 </mapper>
