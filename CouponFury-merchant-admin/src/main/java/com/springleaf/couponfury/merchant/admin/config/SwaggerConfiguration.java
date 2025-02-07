@@ -41,7 +41,7 @@ public class SwaggerConfiguration implements ApplicationRunner {
     }
 
     /**
-     * 方便大家启动项目后可以直接点击链接跳转，而不用自己到浏览器输入路径
+     * 方便启动项目后可以直接点击链接跳转，而不用自己到浏览器输入路径
      */
     @Override
     public void run(ApplicationArguments args) throws Exception {

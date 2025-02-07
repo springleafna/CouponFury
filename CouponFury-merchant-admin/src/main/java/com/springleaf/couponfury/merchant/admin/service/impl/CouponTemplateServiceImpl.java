@@ -40,11 +40,15 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
         CouponTemplateDO couponTemplateDO = BeanUtil.toBean(requestParam, CouponTemplateDO.class);
         couponTemplateDO.setStatus(CouponTemplateStatusEnum.ACTIVE.getStatus());
         couponTemplateDO.setShopNumber(UserContext.getShopNumber());
-        couponTemplateMapper.insert(couponTemplateDO);
+        couponTemplateMapper.saveCouponTemplate(couponTemplateDO);
 
         // 缓存预热：通过将数据库的记录序列化成 JSON 字符串放入 Redis 缓存
         CouponTemplateQueryRespDTO actualRespDTO = BeanUtil.toBean(couponTemplateDO, CouponTemplateQueryRespDTO.class);
+        // 将actualRespDTO对象转换为一个Map，其中键是字段名，值是字段对应的值
+        // false表示不忽略null值的字段。
+        // true表示忽略字段上的transient标记
         Map<String, Object> cacheTargetMap = BeanUtil.beanToMap(actualRespDTO, false, true);
+        // 将Map中的值转换为字符串
         Map<String, String> actualCacheTargetMap = cacheTargetMap.entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,

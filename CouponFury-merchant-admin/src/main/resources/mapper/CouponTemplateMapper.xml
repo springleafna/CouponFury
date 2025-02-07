@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springleaf.couponfury.merchant.admin.mapper.CouponTemplateMapper">
+
+    <resultMap id="dataMap" type="com.springleaf.couponfury.merchant.admin.dao.entity.CouponTemplateDO">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="shop_number" property="shopNumber"/>
+        <result column="source" property="source"/>
+        <result column="target" property="target"/>
+        <result column="goods" property="goods"/>
+        <result column="type" property="type"/>
+        <result column="valid_start_time" property="validStartTime"/>
+        <result column="valid_end_time" property="validEndTime"/>
+        <result column="stock" property="stock"/>
+        <result column="receive_rule" property="receiveRule"/>
+        <result column="consume_rule" property="consumeRule"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="del_flag" property="delFlag"/>
+    </resultMap>
+
+    <insert id="saveCouponTemplate" parameterType="com.springleaf.couponfury.merchant.admin.dao.entity.CouponTemplateDO">
+            insert into t_coupon_template
+                (name, shop_number, source, target, goods, type, valid_start_time, valid_end_time, stock, receive_rule, consume_rule, status, create_time, update_time, del_flag)
+            values
+                (#{name}, #{shopNumber}, #{source}, #{target}, #{goods}, #{type}, #{validStartTime}, #{validEndTime}, #{stock}, #{receiveRule}, #{consumeRule}, #{status}, #{createTime}, #{updateTime}, #{delFlag})
+    </insert>
+
+</mapper>
