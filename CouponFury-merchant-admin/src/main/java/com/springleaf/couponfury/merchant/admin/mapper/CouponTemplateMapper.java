@@ -5,5 +5,5 @@ import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface CouponTemplateMapper {
-    void saveCouponTemplate(CouponTemplateDO couponTemplateDO);
+    int saveCouponTemplate(CouponTemplateDO couponTemplateDO);
 }
