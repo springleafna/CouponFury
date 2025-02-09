@@ -74,6 +74,11 @@
             <artifactId>shardingsphere-jdbc-core</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>io.github.mouzt</groupId>
+            <artifactId>bizlog-sdk</artifactId>
+        </dependency>
+
         <!-- 牛券基础架构组件包相关依赖 -->
         <dependency>
             <groupId>${project.groupId}</groupId>

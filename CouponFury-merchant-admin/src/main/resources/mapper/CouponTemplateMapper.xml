@@ -21,7 +21,7 @@
         <result column="del_flag" property="delFlag"/>
     </resultMap>
 
-    <insert id="saveCouponTemplate" parameterType="com.springleaf.couponfury.merchant.admin.dao.entity.CouponTemplateDO">
+    <insert id="saveCouponTemplate" keyProperty="id" useGeneratedKeys="true" parameterType="com.springleaf.couponfury.merchant.admin.dao.entity.CouponTemplateDO">
             insert into t_coupon_template
                 (name, shop_number, source, target, goods, type, valid_start_time, valid_end_time, stock, receive_rule, consume_rule, status, create_time, update_time, del_flag)
             values

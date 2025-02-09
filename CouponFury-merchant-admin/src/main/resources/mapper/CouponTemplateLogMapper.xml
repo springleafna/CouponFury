@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springleaf.couponfury.merchant.admin.mapper.CouponTemplateLogMapper">
+
+    <resultMap id="dataMap" type="com.springleaf.couponfury.merchant.admin.dao.entity.CouponTemplateLogDO">
+        <id column="id" property="id"/>
+        <result column="shop_number" property="shopNumber"/>
+        <result column="coupon_template_id" property="couponTemplateId"/>
+        <result column="operator_id" property="operatorId"/>
+        <result column="operation_log" property="operationLog"/>
+        <result column="original_data" property="originalData"/>
+        <result column="modified_data" property="modifiedData"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <insert id="saveCouponTemplateLog" parameterType="com.springleaf.couponfury.merchant.admin.dao.entity.CouponTemplateLogDO">
+        insert into t_coupon_template_log (shop_number, coupon_template_id, operator_id, operation_log, original_data, modified_data, create_time)
+        values (#{shopNumber}, #{couponTemplateId}, #{operatorId}, #{operationLog}, #{originalData}, #{modifiedData}, now())
+    </insert>
+
+</mapper>
