@@ -1,6 +1,7 @@
 package com.springleaf.couponfury.merchant.admin.controller;
 
 
+import com.springleaf.couponfury.framework.idempotent.NoDuplicateSubmit;
 import com.springleaf.couponfury.framework.result.Result;
 import com.springleaf.couponfury.framework.web.Results;
 import com.springleaf.couponfury.merchant.admin.dto.req.CouponTemplateSaveReqDTO;
@@ -21,6 +22,7 @@ public class CouponTemplateController {
     @Resource
     private CouponTemplateService couponTemplateService;
 
+    @NoDuplicateSubmit
     @Operation(summary = "商家创建优惠券模板")
     @PostMapping("/api/merchant-admin/coupon-template/create")
     public Result<Void> createCouponTemplate(@RequestBody CouponTemplateSaveReqDTO requestParam) {

@@ -1,1 +1,2 @@
 com.springleaf.couponfury.framework.config.WebAutoConfiguration
+com.springleaf.couponfury.framework.config.IdempotentConfiguration
