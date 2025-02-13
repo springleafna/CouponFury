@@ -12,6 +12,16 @@ spring:
       host: 127.0.0.1
       port: 6379
       database: 0
+  rabbitmq:
+    addresses: 120.26.236.122
+    port: 5672
+    username: springleaf
+    password: 123123
+    listener:
+      simple:
+        prefetch: 1 # 每次投递n个消息，消费完在投递n个
+    topic:
+      coupon-template-delay: coupon-template-delay
 
 mybatis:
   mapper-locations: classpath:/mapper/*.xml
