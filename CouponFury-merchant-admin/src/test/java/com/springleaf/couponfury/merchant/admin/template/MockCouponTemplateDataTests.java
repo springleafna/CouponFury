@@ -3,7 +3,7 @@ package com.springleaf.couponfury.merchant.admin.template;
 import cn.hutool.core.lang.Snowflake;
 import cn.hutool.core.util.RandomUtil;
 import com.springleaf.couponfury.merchant.admin.dao.entity.CouponTemplateDO;
-import com.springleaf.couponfury.merchant.admin.mapper.CouponTemplateMapper;
+import com.springleaf.couponfury.merchant.admin.dao.mapper.CouponTemplateMapper;
 import jakarta.annotation.Resource;
 import jodd.util.ThreadUtil;
 import org.junit.jupiter.api.Test;

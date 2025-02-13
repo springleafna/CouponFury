@@ -15,6 +15,13 @@ spring:
 
 mybatis:
   mapper-locations: classpath:/mapper/*.xml
+pagehelper:
+  helperDialect: mysql
+  reasonable: true
+  supportMethodsArguments: true
+  params: count=countSql
+  pageSizeZero: true
+
 
 springdoc:
   default-flat-param-object: true

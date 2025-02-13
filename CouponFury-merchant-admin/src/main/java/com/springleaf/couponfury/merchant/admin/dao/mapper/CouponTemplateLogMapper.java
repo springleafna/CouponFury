@@ -1,4 +1,4 @@
-package com.springleaf.couponfury.merchant.admin.mapper;
+package com.springleaf.couponfury.merchant.admin.dao.mapper;
 
 import com.springleaf.couponfury.merchant.admin.dao.entity.CouponTemplateLogDO;
 import org.apache.ibatis.annotations.Mapper;

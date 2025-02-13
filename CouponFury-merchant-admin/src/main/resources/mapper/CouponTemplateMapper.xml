@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.springleaf.couponfury.merchant.admin.mapper.CouponTemplateMapper">
+<mapper namespace="com.springleaf.couponfury.merchant.admin.dao.mapper.CouponTemplateMapper">
 
     <resultMap id="dataMap" type="com.springleaf.couponfury.merchant.admin.dao.entity.CouponTemplateDO">
         <id column="id" property="id"/>
@@ -21,11 +21,91 @@
         <result column="del_flag" property="delFlag"/>
     </resultMap>
 
-    <insert id="saveCouponTemplate" keyProperty="id" useGeneratedKeys="true" parameterType="com.springleaf.couponfury.merchant.admin.dao.entity.CouponTemplateDO">
-            insert into t_coupon_template
-                (name, shop_number, source, target, goods, type, valid_start_time, valid_end_time, stock, receive_rule, consume_rule, status, create_time, update_time, del_flag)
-            values
-                (#{name}, #{shopNumber}, #{source}, #{target}, #{goods}, #{type}, #{validStartTime}, #{validEndTime}, #{stock}, #{receiveRule}, #{consumeRule}, #{status}, now(), now(), #{delFlag})
+    <insert id="saveCouponTemplate" keyProperty="id" useGeneratedKeys="true"
+            parameterType="com.springleaf.couponfury.merchant.admin.dao.entity.CouponTemplateDO">
+        insert into t_coupon_template
+        (name, shop_number, source, target, goods, type, valid_start_time, valid_end_time, stock, receive_rule,
+         consume_rule, status, create_time, update_time, del_flag)
+        values (#{name}, #{shopNumber}, #{source}, #{target}, #{goods}, #{type}, #{validStartTime}, #{validEndTime},
+                #{stock}, #{receiveRule}, #{consumeRule}, #{status}, now(), now(), #{delFlag})
     </insert>
+
+    <select id="listCouponTemplate"
+            resultType="com.springleaf.couponfury.merchant.admin.dao.entity.CouponTemplateDO">
+        select id, name, shop_number, source, target, goods, type, valid_start_time, valid_end_time, stock,
+        receive_rule, consume_rule, status, create_time, update_time, del_flag
+        from t_coupon_template
+        where shop_number = #{shopNumber}
+        <if test="name != null and name != ''">
+            AND name LIKE CONCAT('%', #{name}, '%')
+        </if>
+        <if test="goods != null and goods != ''">
+            AND goods LIKE CONCAT('%', #{goods}, '%')
+        </if>
+        <if test="type != null">
+            AND type = #{type}
+        </if>
+        <if test="target != null">
+            AND target = #{target}
+        </if>
+    </select>
+    <select id="getCouponTemplateByShopNumberAndId"
+            resultType="com.springleaf.couponfury.merchant.admin.dao.entity.CouponTemplateDO">
+        select id,
+               name,
+               shop_number,
+               source,
+               target,
+               goods,
+               type,
+               valid_start_time,
+               valid_end_time,
+               stock,
+               receive_rule,
+               consume_rule,
+               status,
+               create_time,
+               update_time,
+               del_flag
+        from t_coupon_template
+        where shop_number = #{shopNumber}
+          and id = #{couponTemplateId}
+    </select>
+
+    <select id="getCouponTemplateById"
+            resultType="com.springleaf.couponfury.merchant.admin.dao.entity.CouponTemplateDO">
+        select id,
+               name,
+               shop_number,
+               source,
+               target,
+               goods,
+               type,
+               valid_start_time,
+               valid_end_time,
+               stock,
+               receive_rule,
+               consume_rule,
+               status,
+               create_time,
+               update_time,
+               del_flag
+        from t_coupon_template
+        where id = #{couponTemplateId}
+    </select>
+
+    <update id="increaseNumberCouponTemplate">
+        update t_coupon_template
+        set stock = stock + #{number}
+        where shop_number = #{shopNumber}
+          and id = #{couponTemplateId}
+    </update>
+
+    <update id="updateCouponTemplateStatus">
+        update t_coupon_template
+        set status = #{status}
+        where shop_number = #{shopNumber}
+          and id = #{couponTemplateId}
+    </update>
 
 </mapper>

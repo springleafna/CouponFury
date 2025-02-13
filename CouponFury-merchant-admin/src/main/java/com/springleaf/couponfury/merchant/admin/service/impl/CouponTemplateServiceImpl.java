@@ -1,15 +1,25 @@
 package com.springleaf.couponfury.merchant.admin.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson2.JSON;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.springleaf.couponfury.framework.exception.ClientException;
+import com.springleaf.couponfury.framework.exception.ServiceException;
 import com.springleaf.couponfury.merchant.admin.common.constant.MerchantAdminRedisConstant;
 import com.springleaf.couponfury.merchant.admin.common.context.UserContext;
 import com.springleaf.couponfury.merchant.admin.common.enums.CouponTemplateStatusEnum;
 import com.springleaf.couponfury.merchant.admin.dao.entity.CouponTemplateDO;
+import com.springleaf.couponfury.merchant.admin.dto.req.CouponTemplateNumberReqDTO;
+import com.springleaf.couponfury.merchant.admin.dto.req.CouponTemplatePageQueryReqDTO;
 import com.springleaf.couponfury.merchant.admin.dto.req.CouponTemplateSaveReqDTO;
+import com.springleaf.couponfury.merchant.admin.dto.req.PageParamReqDTO;
+import com.springleaf.couponfury.merchant.admin.dto.resp.CouponTemplatePageQueryRespDTO;
 import com.springleaf.couponfury.merchant.admin.dto.resp.CouponTemplateQueryRespDTO;
-import com.springleaf.couponfury.merchant.admin.mapper.CouponTemplateMapper;
+import com.springleaf.couponfury.merchant.admin.dao.mapper.CouponTemplateMapper;
 import com.springleaf.couponfury.merchant.admin.service.CouponTemplateService;
 import com.springleaf.couponfury.merchant.admin.service.basics.chain.MerchantAdminChainContext;
 import jakarta.annotation.Resource;
@@ -98,5 +108,93 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
                 keys,
                 args.toArray()
         );
+    }
+
+    @Override
+    public PageInfo<CouponTemplatePageQueryRespDTO> pageQueryCouponTemplate(CouponTemplatePageQueryReqDTO requestParam, PageParamReqDTO pageParam) {
+        // 开启分页查询
+        PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
+
+        // 查询数据库
+        CouponTemplateDO couponTemplateDO = BeanUtil.toBean(requestParam, CouponTemplateDO.class);
+        couponTemplateDO.setShopNumber(UserContext.getShopNumber());
+        List<CouponTemplateDO> couponTemplateDOList = couponTemplateMapper.listCouponTemplate(couponTemplateDO);
+
+        // 转换为响应对象
+        List<CouponTemplatePageQueryRespDTO> couponTemplatePageQueryRespDTOList = couponTemplateDOList.stream()
+                .map(couponTemplateDOTemp -> BeanUtil.toBean(couponTemplateDO, CouponTemplatePageQueryRespDTO.class))
+                .collect(Collectors.toList());
+
+        // 封装分页信息
+        return new PageInfo<>(couponTemplatePageQueryRespDTOList);
+    }
+
+    @Override
+    public CouponTemplateQueryRespDTO findCouponTemplateById(Long couponTemplateId) {
+        CouponTemplateDO couponTemplateDO = couponTemplateMapper.getCouponTemplateByShopNumberAndId(UserContext.getShopNumber(), couponTemplateId);
+        return BeanUtil.toBean(couponTemplateDO, CouponTemplateQueryRespDTO.class);
+    }
+
+    @LogRecord(
+            success = "结束优惠券",
+            type = "CouponTemplate",
+            bizNo = "{{#couponTemplateId}}"
+    )
+    @Override
+    public void terminateCouponTemplate(Long couponTemplateId) {
+        // 验证是否存在数据横向越权
+        CouponTemplateDO couponTemplateDO = couponTemplateMapper.getCouponTemplateByShopNumberAndId(UserContext.getShopNumber(), couponTemplateId);
+        if (couponTemplateDO == null) {
+            // 一旦查询优惠券不存在，基本可判定横向越权，可上报该异常行为，次数多了后执行封号等处理
+            throw new ClientException("优惠券模板异常，请检查操作是否正确...");
+        }
+
+        // 验证优惠券模板是否正常
+        if (ObjectUtil.notEqual(couponTemplateDO.getStatus(), CouponTemplateStatusEnum.ACTIVE.getStatus())) {
+            throw new ClientException("优惠券模板已结束");
+        }
+
+        // 记录优惠券模板修改前数据
+        LogRecordContext.putVariable("originalData", JSON.toJSONString(couponTemplateDO));
+
+        // 修改优惠券模板状态为结束
+        couponTemplateMapper.updateCouponTemplateStatus(couponTemplateId, UserContext.getShopNumber(), CouponTemplateStatusEnum.ENDED.getStatus());
+
+        // 修改优惠券模板Redis缓存状态为结束状态
+        String couponTemplateCacheKey = String.format(MerchantAdminRedisConstant.COUPON_TEMPLATE_KEY, couponTemplateId);
+        stringRedisTemplate.opsForHash().put(couponTemplateCacheKey, "status", String.valueOf(CouponTemplateStatusEnum.ENDED.getStatus()));
+    }
+
+    @LogRecord(
+            success = "增加发行量：{{#requestParam.number}}",
+            type = "CouponTemplate",
+            bizNo = "{{#requestParam.couponTemplateId}}"
+    )
+    @Override
+    public void increaseNumberCouponTemplate(CouponTemplateNumberReqDTO requestParam) {
+        // 验证是否存在数据横向越权
+        CouponTemplateDO couponTemplateDO = couponTemplateMapper.getCouponTemplateByShopNumberAndId(UserContext.getShopNumber(), requestParam.getCouponTemplateId());
+        if (couponTemplateDO == null) {
+            // 一旦查询优惠券不存在，基本可判定横向越权，可上报该异常行为，次数多了后执行封号等处理
+            throw new ClientException("优惠券模板异常，请检查操作是否正确...");
+        }
+
+        // 验证优惠券模板是否正常
+        if (ObjectUtil.notEqual(couponTemplateDO.getStatus(), CouponTemplateStatusEnum.ACTIVE.getStatus())) {
+            throw new ClientException("优惠券模板已结束");
+        }
+
+        // 记录优惠券模板修改前数据
+        LogRecordContext.putVariable("originalData", JSON.toJSONString(couponTemplateDO));
+
+        // 设置数据库优惠券模板增加库存发行量
+        int increased = couponTemplateMapper.increaseNumberCouponTemplate(UserContext.getShopNumber(), requestParam.getCouponTemplateId(), requestParam.getNumber());
+        if (increased < 1) {
+            throw new ServiceException("优惠券模板库存发行量增加失败");
+        }
+
+        // 增加优惠券模板缓存库存发行量
+        String couponTemplateCacheKey = String.format(MerchantAdminRedisConstant.COUPON_TEMPLATE_KEY, requestParam.getCouponTemplateId());
+        stringRedisTemplate.opsForHash().increment(couponTemplateCacheKey, "stock", requestParam.getNumber());
     }
 }

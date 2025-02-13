@@ -4,7 +4,7 @@ import cn.hutool.core.lang.Assert;
 import com.alibaba.fastjson2.JSONObject;
 import com.springleaf.couponfury.merchant.admin.common.enums.CouponTemplateStatusEnum;
 import com.springleaf.couponfury.merchant.admin.dao.entity.CouponTemplateDO;
-import com.springleaf.couponfury.merchant.admin.mapper.CouponTemplateMapper;
+import com.springleaf.couponfury.merchant.admin.dao.mapper.CouponTemplateMapper;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

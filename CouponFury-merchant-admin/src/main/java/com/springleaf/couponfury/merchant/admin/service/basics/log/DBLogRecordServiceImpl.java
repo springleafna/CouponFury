@@ -6,7 +6,7 @@ import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.service.ILogRecordService;
 import com.springleaf.couponfury.merchant.admin.common.context.UserContext;
 import com.springleaf.couponfury.merchant.admin.dao.entity.CouponTemplateLogDO;
-import com.springleaf.couponfury.merchant.admin.mapper.CouponTemplateLogMapper;
+import com.springleaf.couponfury.merchant.admin.dao.mapper.CouponTemplateLogMapper;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

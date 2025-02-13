@@ -79,6 +79,11 @@
             <artifactId>bizlog-sdk</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.github.pagehelper</groupId>
+            <artifactId>pagehelper-spring-boot-starter</artifactId>
+        </dependency>
+
         <!-- 牛券基础架构组件包相关依赖 -->
         <dependency>
             <groupId>${project.groupId}</groupId>
