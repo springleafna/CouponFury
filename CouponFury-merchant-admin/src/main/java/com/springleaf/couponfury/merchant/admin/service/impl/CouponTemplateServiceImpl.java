@@ -3,6 +3,7 @@ package com.springleaf.couponfury.merchant.admin.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.mzt.logapi.context.LogRecordContext;
@@ -23,14 +24,16 @@ import com.springleaf.couponfury.merchant.admin.dao.mapper.CouponTemplateMapper;
 import com.springleaf.couponfury.merchant.admin.service.CouponTemplateService;
 import com.springleaf.couponfury.merchant.admin.service.basics.chain.MerchantAdminChainContext;
 import jakarta.annotation.Resource;
+import org.springframework.amqp.AmqpException;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessagePostProcessor;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.springleaf.couponfury.merchant.admin.common.enums.ChainBizMarkEnum.MERCHANT_ADMIN_CREATE_COUPON_TEMPLATE_KEY;
@@ -43,6 +46,8 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
     private MerchantAdminChainContext<CouponTemplateSaveReqDTO> merchantAdminChainContext;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+    @Resource
+    private RabbitTemplate rabbitTemplate;
 
     @LogRecord(
             success = """
@@ -108,6 +113,31 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
                 keys,
                 args.toArray()
         );
+
+        // 使用rabbitmq发送延迟消息
+        // 定义routingKey
+        String topic = "coupon-template-delay-execute-status";
+        String routingKey = "coupon-template-delay-execute-status";
+
+        // 计算延迟时间（毫秒）
+        long delayMillis = couponTemplateDO.getValidEndTime().getTime() - System.currentTimeMillis();
+        if (delayMillis <= 0) {
+            throw new IllegalArgumentException("Invalid delay time");
+        }
+
+        // 定义消息体
+        JSONObject messageBody = new JSONObject();
+        messageBody.put("couponTemplateId", couponTemplateDO.getId());
+        messageBody.put("shopNumber", UserContext.getShopNumber());
+
+        // 发送延迟消息
+        System.out.println("------------send delay message------------");
+        rabbitTemplate.convertAndSend(topic, routingKey, messageBody.toString(), message -> {
+            message.getMessageProperties().setHeader("x-delay", delayMillis);
+            return message;
+        });
+
+
     }
 
     @Override
