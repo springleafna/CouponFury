@@ -22,7 +22,8 @@
         <result column="del_flag" property="delFlag"/>
     </resultMap>
 
-    <insert id="saveCouponTask" parameterType="com.springleaf.couponfury.merchant.admin.dao.entity.CouponTaskDO">
+    <insert id="saveCouponTask" parameterType="com.springleaf.couponfury.merchant.admin.dao.entity.CouponTaskDO"
+            keyProperty="id" useGeneratedKeys="true">
         INSERT INTO t_coupon_task (
             shop_number,
             batch_id,
@@ -53,11 +54,19 @@
             #{sendTime},
             #{status},
             #{completionTime},
-            #{createTime},
+            now(),
             #{operatorId},
-            #{updateTime},
-            #{delFlag}
+            now(),
+            0
         )
     </insert>
+
+    <update id="updateSendNumById">
+        UPDATE t_coupon_task SET send_num = #{sendNum} WHERE id = #{id}
+    </update>
+
+    <select id="selectById" resultType="com.springleaf.couponfury.merchant.admin.dao.entity.CouponTaskDO">
+        SELECT * FROM t_coupon_task WHERE id = #{id}
+    </select>
 
 </mapper>
