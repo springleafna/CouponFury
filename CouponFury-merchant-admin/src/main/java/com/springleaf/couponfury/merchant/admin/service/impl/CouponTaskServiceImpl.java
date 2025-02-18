@@ -18,6 +18,10 @@ import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class CouponTaskServiceImpl implements CouponTaskService {
@@ -26,6 +30,18 @@ public class CouponTaskServiceImpl implements CouponTaskService {
     private CouponTaskMapper couponTaskMapper;
     @Resource
     private CouponTemplateService couponTemplateService;
+
+    /**
+     * 为什么这里拒绝策略使用直接丢弃任务？因为在发送任务时如果遇到发送数量为空，会重新进行统计
+     */
+    private final ExecutorService executorService = new ThreadPoolExecutor(
+            Runtime.getRuntime().availableProcessors(),
+            Runtime.getRuntime().availableProcessors() << 1,
+            60,
+            TimeUnit.SECONDS,
+            new SynchronousQueue<>(),
+            new ThreadPoolExecutor.DiscardPolicy()
+    );
 
     @Override
     public void createCouponTask(CouponTaskCreateReqDTO requestParam) {
