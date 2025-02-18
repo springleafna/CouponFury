@@ -24,12 +24,13 @@ import com.springleaf.couponfury.merchant.admin.dao.mapper.CouponTemplateMapper;
 import com.springleaf.couponfury.merchant.admin.service.CouponTemplateService;
 import com.springleaf.couponfury.merchant.admin.service.basics.chain.MerchantAdminChainContext;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.AmqpException;
-import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 
@@ -39,6 +40,7 @@ import java.util.stream.Collectors;
 import static com.springleaf.couponfury.merchant.admin.common.enums.ChainBizMarkEnum.MERCHANT_ADMIN_CREATE_COUPON_TEMPLATE_KEY;
 
 @Service
+@Slf4j
 public class CouponTemplateServiceImpl implements CouponTemplateService {
     @Resource
     private CouponTemplateMapper couponTemplateMapper;
@@ -116,13 +118,13 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
 
         // 使用rabbitmq发送延迟消息
         // 定义routingKey
-        String topic = "coupon-template-delay-execute-status";
+        String exchange = "coupon-template-delay-execute-status";
         String routingKey = "coupon-template-delay-execute-status";
 
         // 计算延迟时间（毫秒）
         long delayMillis = couponTemplateDO.getValidEndTime().getTime() - System.currentTimeMillis();
         if (delayMillis <= 0) {
-            throw new IllegalArgumentException("Invalid delay time");
+            throw new IllegalArgumentException("无效的延迟时间");
         }
 
         // 定义消息体
@@ -130,14 +132,19 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
         messageBody.put("couponTemplateId", couponTemplateDO.getId());
         messageBody.put("shopNumber", UserContext.getShopNumber());
 
+        // 构建消息体
+        String messageKeys = UUID.randomUUID().toString();
+        Message<JSONObject> messageContent = MessageBuilder
+                .withPayload(messageBody)
+                .setHeader("messageKeys", messageKeys)
+                .build();
+
         // 发送延迟消息
-        System.out.println("------------send delay message------------");
-        rabbitTemplate.convertAndSend(topic, routingKey, messageBody.toString(), message -> {
+        log.info("发送延迟消息，exchange={}, routingKey={}, delayMillis={}", exchange, routingKey, delayMillis);
+        rabbitTemplate.convertAndSend(exchange, routingKey, messageContent, message -> {
             message.getMessageProperties().setHeader("x-delay", delayMillis);
             return message;
         });
-
-
     }
 
     @Override
