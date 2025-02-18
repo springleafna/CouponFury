@@ -14,20 +14,19 @@ import com.springleaf.couponfury.merchant.admin.common.constant.MerchantAdminRed
 import com.springleaf.couponfury.merchant.admin.common.context.UserContext;
 import com.springleaf.couponfury.merchant.admin.common.enums.CouponTemplateStatusEnum;
 import com.springleaf.couponfury.merchant.admin.dao.entity.CouponTemplateDO;
+import com.springleaf.couponfury.merchant.admin.dao.mapper.CouponTemplateMapper;
 import com.springleaf.couponfury.merchant.admin.dto.req.CouponTemplateNumberReqDTO;
 import com.springleaf.couponfury.merchant.admin.dto.req.CouponTemplatePageQueryReqDTO;
 import com.springleaf.couponfury.merchant.admin.dto.req.CouponTemplateSaveReqDTO;
 import com.springleaf.couponfury.merchant.admin.dto.req.PageParamReqDTO;
 import com.springleaf.couponfury.merchant.admin.dto.resp.CouponTemplatePageQueryRespDTO;
 import com.springleaf.couponfury.merchant.admin.dto.resp.CouponTemplateQueryRespDTO;
-import com.springleaf.couponfury.merchant.admin.dao.mapper.CouponTemplateMapper;
 import com.springleaf.couponfury.merchant.admin.service.CouponTemplateService;
 import com.springleaf.couponfury.merchant.admin.service.basics.chain.MerchantAdminChainContext;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.AmqpException;
-import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.messaging.Message;
@@ -134,9 +133,10 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
 
         // 构建消息体
         String messageKeys = UUID.randomUUID().toString();
-        Message<JSONObject> messageContent = MessageBuilder
+        Message<?> messageContent = MessageBuilder
                 .withPayload(messageBody)
-                .setHeader("messageKeys", messageKeys)
+                .setHeader(AmqpHeaders.CORRELATION_ID, messageKeys) // 使用标准头部
+                .setHeader("x-delay", delayMillis)
                 .build();
 
         // 发送延迟消息

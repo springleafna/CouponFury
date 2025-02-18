@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
 /**
@@ -27,9 +28,9 @@ public class CouponTemplateDelayExecuteStatusConsumer {
     private CouponTemplateMapper couponTemplateMapper;
 
     @RabbitListener(queues = "coupon-template-delay-execute-status")
-    public void listener(JSONObject message) {
+    public void listener(@Payload JSONObject message) {
         // 开头打印日志，平常可 Debug 看任务参数，线上可报平安（比如消息是否消费，重新投递时获取参数等）
-        log.info("[消费者] 优惠券模板定时执行@变更模板表状态 - 执行消费逻辑，消息体：{}", message.toString());
+        log.info("[消费者] 优惠券模板定时执行@变更模板表状态 - 执行消费逻辑，消息体：{}", message);
 
         // 解析消息体
         Long couponTemplateId = message.getLong("couponTemplateId");
