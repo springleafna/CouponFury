@@ -24,49 +24,66 @@
 
     <insert id="saveCouponTask" parameterType="com.springleaf.couponfury.merchant.admin.dao.entity.CouponTaskDO"
             keyProperty="id" useGeneratedKeys="true">
-        INSERT INTO t_coupon_task (
-            shop_number,
-            batch_id,
-            task_name,
-            file_address,
-            fail_file_address,
-            send_num,
-            notify_type,
-            coupon_template_id,
-            send_type,
-            send_time,
-            status,
-            completion_time,
-            create_time,
-            operator_id,
-            update_time,
-            del_flag
-        ) VALUES (
-            #{shopNumber},
-            #{batchId},
-            #{taskName},
-            #{fileAddress},
-            #{failFileAddress},
-            #{sendNum},
-            #{notifyType},
-            #{couponTemplateId},
-            #{sendType},
-            #{sendTime},
-            #{status},
-            #{completionTime},
-            now(),
-            #{operatorId},
-            now(),
-            0
-        )
+        INSERT INTO t_coupon_task (shop_number,
+                                   batch_id,
+                                   task_name,
+                                   file_address,
+                                   fail_file_address,
+                                   send_num,
+                                   notify_type,
+                                   coupon_template_id,
+                                   send_type,
+                                   send_time,
+                                   status,
+                                   completion_time,
+                                   create_time,
+                                   operator_id,
+                                   update_time,
+                                   del_flag)
+        VALUES (#{shopNumber},
+                #{batchId},
+                #{taskName},
+                #{fileAddress},
+                #{failFileAddress},
+                #{sendNum},
+                #{notifyType},
+                #{couponTemplateId},
+                #{sendType},
+                #{sendTime},
+                #{status},
+                #{completionTime},
+                now(),
+                #{operatorId},
+                now(),
+                0)
     </insert>
 
-    <update id="updateSendNumById">
-        UPDATE t_coupon_task SET send_num = #{sendNum} WHERE id = #{id}
+    <update id="updateCouponTaskSendNumById">
+        UPDATE t_coupon_task
+        SET send_num = #{sendNum}
+        WHERE id = #{id}
     </update>
 
-    <select id="selectById" resultType="com.springleaf.couponfury.merchant.admin.dao.entity.CouponTaskDO">
-        SELECT * FROM t_coupon_task WHERE id = #{id}
+    <select id="selectCouponTaskById" resultType="com.springleaf.couponfury.merchant.admin.dao.entity.CouponTaskDO">
+        SELECT *
+        FROM t_coupon_task
+        WHERE id = #{id}
     </select>
+
+    <select id="selectByStatusAndLimit"
+            resultType="com.springleaf.couponfury.merchant.admin.dao.entity.CouponTaskDO">
+        SELECT *
+        FROM t_coupon_task
+        WHERE status = #{status}
+          AND send_time &lt;= #{now}
+          AND id &gt; #{initId}
+        LIMIT #{maxLimit}
+    </select>
+
+    <update id="updateCouponTaskStatusById">
+        UPDATE t_coupon_task
+        SET status = #{status}
+        WHERE id = #{id}
+    </update>
 
 </mapper>

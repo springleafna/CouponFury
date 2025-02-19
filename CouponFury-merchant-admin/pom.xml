@@ -101,6 +101,12 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- 定时任务相关依赖 -->
+        <dependency>
+            <groupId>com.xuxueli</groupId>
+            <artifactId>xxl-job-core</artifactId>
+        </dependency>
+
         <!-- 牛券基础架构组件包相关依赖 -->
         <dependency>
             <groupId>${project.groupId}</groupId>

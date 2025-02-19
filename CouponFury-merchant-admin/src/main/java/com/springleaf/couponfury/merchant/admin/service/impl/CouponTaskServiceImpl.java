@@ -118,7 +118,7 @@ public class CouponTaskServiceImpl implements CouponTaskService {
         int totalRows = listener.getRowCount();
 
         // 刷新优惠券推送记录中发送行数
-        couponTaskMapper.updateSendNumById(id, totalRows);
+        couponTaskMapper.updateCouponTaskSendNumById(id, totalRows);
     }
 
     /**
@@ -149,7 +149,7 @@ public class CouponTaskServiceImpl implements CouponTaskService {
                                 JSONObject delayJsonObject = blockingDeque.take();
                                 if (delayJsonObject != null) {
                                     // 获取优惠券推送记录，查看发送条数是否已经有值，有的话代表上面线程池已经处理完成，无需再处理
-                                    CouponTaskDO couponTaskDO = couponTaskMapper.selectById(delayJsonObject.getLong("couponTaskId"));
+                                    CouponTaskDO couponTaskDO = couponTaskMapper.selectCouponTaskById(delayJsonObject.getLong("couponTaskId"));
                                     if (couponTaskDO.getSendNum() == null) {
                                         refreshCouponTaskSendNum(delayJsonObject);
                                     }
