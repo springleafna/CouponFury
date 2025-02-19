@@ -114,37 +114,6 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
                 keys,
                 args.toArray()
         );
-
-        // 使用rabbitmq发送延迟消息
-        // 定义routingKey
-        String exchange = "coupon-template-delay-execute-status";
-        String routingKey = "coupon-template-delay-execute-status";
-
-        // 计算延迟时间（毫秒）
-        long delayMillis = couponTemplateDO.getValidEndTime().getTime() - System.currentTimeMillis();
-        if (delayMillis <= 0) {
-            throw new IllegalArgumentException("无效的延迟时间");
-        }
-
-        // 定义消息体
-        JSONObject messageBody = new JSONObject();
-        messageBody.put("couponTemplateId", couponTemplateDO.getId());
-        messageBody.put("shopNumber", UserContext.getShopNumber());
-
-        // 构建消息体
-        String messageKeys = UUID.randomUUID().toString();
-        Message<?> messageContent = MessageBuilder
-                .withPayload(messageBody)
-                .setHeader(AmqpHeaders.CORRELATION_ID, messageKeys) // 使用标准头部
-                .setHeader("x-delay", delayMillis)
-                .build();
-
-        // 发送延迟消息
-        log.info("发送延迟消息，exchange={}, routingKey={}, delayMillis={}", exchange, routingKey, delayMillis);
-        rabbitTemplate.convertAndSend(exchange, routingKey, messageContent, message -> {
-            message.getMessageProperties().setHeader("x-delay", delayMillis);
-            return message;
-        });
     }
 
     @Override

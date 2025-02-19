@@ -41,6 +41,10 @@ public class CouponTaskServiceImpl implements CouponTaskService {
 
     /**
      * 为什么这里拒绝策略使用直接丢弃任务？因为在发送任务时如果遇到发送数量为空，会重新进行统计
+     * corePoolSize：因为属于后管任务，大概率不会很频繁，所以直接取服务器 CPU 核数。
+     * maximumPoolSize：运行任务属于 IO 密集型，最大线程数直接服务器 CPU 核数 2 倍。
+     * workQueue：理论上说我们不会有阻塞的情况，因为设置的线程数不少，所以如果使用不存储任务的同步队列。
+     * handler：如果线程数都在运行，直接将任务丢弃即可，因为我们还有延时队列兜底。
      */
     private final ExecutorService executorService = new ThreadPoolExecutor(
             Runtime.getRuntime().availableProcessors(),
