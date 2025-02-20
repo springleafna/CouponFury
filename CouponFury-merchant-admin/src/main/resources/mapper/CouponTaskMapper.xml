@@ -64,14 +64,13 @@
         WHERE id = #{id}
     </update>
 
-    <select id="selectCouponTaskById" resultType="com.springleaf.couponfury.merchant.admin.dao.entity.CouponTaskDO">
+    <select id="selectCouponTaskById" resultMap="dataMap">
         SELECT *
         FROM t_coupon_task
         WHERE id = #{id}
     </select>
 
-    <select id="selectByStatusAndLimit"
-            resultType="com.springleaf.couponfury.merchant.admin.dao.entity.CouponTaskDO">
+    <select id="selectByStatusAndLimit" resultMap="dataMap">
         SELECT *
         FROM t_coupon_task
         WHERE status = #{status}

@@ -1,4 +1,4 @@
-package com.springleaf.couponfury.merchant.admin.dto.resp;
+package com.springleaf.couponfury.engine.dto.resp;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -7,12 +7,11 @@ import lombok.Data;
 import java.util.Date;
 
 /**
- * 优惠券模板详情查询接口返回参数实体
+ * 优惠券模板查询接口返回参数实体
  */
 @Data
-@Schema(description = "优惠券模板详情查询返回实体")
+@Schema(description = "优惠券模板查询返回实体")
 public class CouponTemplateQueryRespDTO {
-
 
     /**
      * 优惠券id

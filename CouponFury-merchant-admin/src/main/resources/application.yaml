@@ -32,6 +32,7 @@ pagehelper:
   pageSizeZero: true
 
 xxl-job:
+  # 是否开启xxl-job
   enabled: false
   access-token: default_token
   admin:

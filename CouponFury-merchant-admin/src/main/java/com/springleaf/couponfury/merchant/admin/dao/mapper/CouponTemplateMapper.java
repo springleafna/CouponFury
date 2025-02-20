@@ -27,7 +27,7 @@ public interface CouponTemplateMapper {
     /*
     * 根据优惠券模板id和店铺编号查询优惠券模板
      */
-    CouponTemplateDO getCouponTemplateByShopNumberAndId(@Param("shopNumber") Long ShopNumber, @Param("couponTemplateId") Long couponTemplateId);
+    CouponTemplateDO getCouponTemplateByShopNumberAndId(@Param("shopNumber") Long shopNumber, @Param("couponTemplateId") Long couponTemplateId);
 
     /**
      * 增加优惠券模板发行量
