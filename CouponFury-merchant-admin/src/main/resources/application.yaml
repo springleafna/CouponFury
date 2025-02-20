@@ -32,6 +32,7 @@ pagehelper:
   pageSizeZero: true
 
 xxl-job:
+  enabled: false
   access-token: default_token
   admin:
     addresses: http://127.0.0.1:7080/xxl-job-admin
