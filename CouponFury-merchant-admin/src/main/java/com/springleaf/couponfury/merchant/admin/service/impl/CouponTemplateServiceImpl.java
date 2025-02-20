@@ -24,6 +24,7 @@ import com.springleaf.couponfury.merchant.admin.service.CouponTemplateService;
 import com.springleaf.couponfury.merchant.admin.service.basics.chain.MerchantAdminChainContext;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RBloomFilter;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -48,6 +49,8 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
     private StringRedisTemplate stringRedisTemplate;
     @Resource
     private RabbitTemplate rabbitTemplate;
+    @Resource
+    private RBloomFilter<String> couponTemplateQueryBloomFilter;
 
     @LogRecord(
             success = """
@@ -113,6 +116,9 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
                 keys,
                 args.toArray()
         );
+
+        // 添加优惠券模板 ID 到布隆过滤器
+        couponTemplateQueryBloomFilter.add(String.valueOf(couponTemplateDO.getId()));
     }
 
     @Override
