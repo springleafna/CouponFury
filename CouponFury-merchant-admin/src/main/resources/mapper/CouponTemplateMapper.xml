@@ -48,6 +48,7 @@
             AND target = #{target}
         </if>
     </select>
+
     <select id="getCouponTemplateByShopNumberAndId" resultMap="dataMap">
         select id,
                name,

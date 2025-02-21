@@ -4,3 +4,21 @@ server:
 spring:
   application:
     name: CouponFury-distribution
+  datasource:
+    driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
+    url: jdbc:shardingsphere:classpath:shardingsphere-config.yaml
+    data:
+      redis:
+        host: 127.0.0.1
+        port: 6379
+        database: 0
+
+
+  mybatis:
+    mapper-locations: classpath:/mapper/*.xml
+  pagehelper:
+    helperDialect: mysql
+    reasonable: true
+    supportMethodsArguments: true
+    params: count=countSql
+    pageSizeZero: true
