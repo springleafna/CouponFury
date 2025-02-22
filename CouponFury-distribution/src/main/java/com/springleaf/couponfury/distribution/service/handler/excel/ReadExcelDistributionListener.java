@@ -1,4 +1,4 @@
-package com.springleaf.couponfury.distribution.excel;
+package com.springleaf.couponfury.distribution.service.handler.excel;
 
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
@@ -23,6 +23,11 @@ import java.util.Date;
 
 /**
  * 优惠券任务读取 Excel 分发监听器
+ * 不要被Spring管理 因为每次读取 Excel 都会创建一个新的实例
+ * 所以不要使用@Component注解
+ * 参数使用构造函数注入
+ * 重写的invoke方法会在每次读取 Excel 行数据时被调用
+ * 重写的doAfterAllAnalysed方法会在整个数据解析完成后被调用一次
  */
 public class ReadExcelDistributionListener extends AnalysisEventListener<CouponTaskExcelObject> {
 
@@ -42,6 +47,11 @@ public class ReadExcelDistributionListener extends AnalysisEventListener<CouponT
         this.couponTaskMapper = couponTaskMapper;
     }
 
+    /**
+     * 此方法会在Excel文件每读一行都会被调用一次
+     * @param data  优惠券推送任务 Excel 元数据实体
+     * @param context   分析上下文
+     */
     @Override
     public void invoke(CouponTaskExcelObject data, AnalysisContext context) {
         // 通过缓存判断优惠券模板记录库存是否充足
@@ -92,6 +102,10 @@ public class ReadExcelDistributionListener extends AnalysisEventListener<CouponT
         stringRedisTemplate.opsForZSet().add(userCouponListCacheKey, userCouponItemCacheKey, now.getTime());
     }
 
+    /**
+     * 整个 Excel 文件读取结束后调用 只会调用一次
+     * @param analysisContext   分析上下文
+     */
     @Override
     public void doAfterAllAnalysed(AnalysisContext analysisContext) {
         // 确保所有用户都已经接到优惠券后，设置优惠券推送任务完成时间

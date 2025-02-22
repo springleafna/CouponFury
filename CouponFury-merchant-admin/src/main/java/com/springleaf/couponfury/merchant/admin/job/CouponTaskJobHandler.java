@@ -3,6 +3,8 @@ package com.springleaf.couponfury.merchant.admin.job;
 import com.springleaf.couponfury.merchant.admin.common.enums.CouponTaskStatusEnum;
 import com.springleaf.couponfury.merchant.admin.dao.entity.CouponTaskDO;
 import com.springleaf.couponfury.merchant.admin.dao.mapper.CouponTaskMapper;
+import com.springleaf.couponfury.merchant.admin.mq.event.CouponTaskExecuteMessageEvent;
+import com.springleaf.couponfury.merchant.admin.mq.producer.EventPublisher;
 import com.xxl.job.core.handler.IJobHandler;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import jakarta.annotation.Resource;
@@ -19,6 +21,10 @@ public class CouponTaskJobHandler extends IJobHandler {
 
     @Resource
     private CouponTaskMapper couponTaskMapper;
+    @Resource
+    private EventPublisher eventPublisher;
+    @Resource
+    private CouponTaskExecuteMessageEvent couponTaskExecuteMessageEvent;
 
     // 每次处理的数据量
     private static final int MAX_LIMIT = 100;
@@ -63,11 +69,11 @@ public class CouponTaskJobHandler extends IJobHandler {
         }
     }
 
-    private void distributeCoupon(CouponTaskDO couponTaskDO) {
+    private void distributeCoupon(CouponTaskDO couponTask) {
         // 修改延时执行推送任务任务状态为执行中
-        couponTaskMapper.updateCouponTaskStatusById(couponTaskDO.getId(), CouponTaskStatusEnum.IN_PROGRESS.getStatus());
+        couponTaskMapper.updateCouponTaskStatusById(couponTask.getId(), CouponTaskStatusEnum.IN_PROGRESS.getStatus());
         // 通过消息队列发送消息，由分发服务消费者消费该消息
-        // TODO:调用rabbitmq消息队列发送消息
+        eventPublisher.publish(couponTaskExecuteMessageEvent.topic(), couponTaskExecuteMessageEvent.buildEventMessage(couponTask.getId()));
     }
 
     private List<CouponTaskDO> fetchPendingTasks(long initId, Date now) {

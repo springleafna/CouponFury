@@ -1,4 +1,4 @@
-package com.springleaf.couponfury.distribution.excel;
+package com.springleaf.couponfury.distribution.service.handler.excel;
 
 import com.alibaba.excel.annotation.ExcelProperty;
 import lombok.Data;

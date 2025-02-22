@@ -30,4 +30,11 @@
         WHERE id = #{id}
     </update>
 
+    <select id="selectCouponTaskById"
+            resultMap="dataMap">
+        SELECT *
+        FROM t_coupon_task
+        WHERE id = #{id}
+    </select>
+
 </mapper>
