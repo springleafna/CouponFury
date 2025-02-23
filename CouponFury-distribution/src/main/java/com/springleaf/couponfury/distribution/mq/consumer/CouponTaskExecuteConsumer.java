@@ -38,16 +38,20 @@ public class CouponTaskExecuteConsumer {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
-    @RabbitListener(queuesToDeclare = @Queue(value = "coupon-task-execute"))
+    @RabbitListener(queuesToDeclare = @Queue(value = "coupon.task.execute"))
     public void listen(String message) {
         try {
-            log.info("监听活动sku库存消耗为0消息 topic: {} message: {}", topic, message);
+            log.info("[消费者] 优惠券推送任务正式执行 - 执行消费逻辑，topic: {}, message: {}", topic, message);
             // 转换对象
             BaseEvent.EventMessage<Long> eventMessage = JSON.parseObject(message, new TypeReference<BaseEvent.EventMessage<Long>>() {
             }.getType());
             Long couponTaskId = eventMessage.getData();
             // 判断优惠券模板发送状态是否为执行中，如果不是有可能是被取消状态
-            CouponTaskDO couponTaskDO = couponTaskMapper.selectCouponTaskById(couponTaskId);
+            CouponTaskDO couponTaskDO = couponTaskMapper.getCouponTaskById(couponTaskId);
+            if (ObjectUtil.isNull(couponTaskDO)) {
+                log.error("[消费者] 优惠券推送任务正式执行 - 推送任务记录不存在：{}", couponTaskId);
+                return;
+            }
             if (ObjectUtil.notEqual(couponTaskDO.getStatus(), CouponTaskStatusEnum.IN_PROGRESS.getStatus())) {
                 log.warn("[消费者] 优惠券推送任务正式执行 - 推送任务记录状态异常：{}，已终止推送", couponTaskDO.getStatus());
                 return;
@@ -55,9 +59,13 @@ public class CouponTaskExecuteConsumer {
 
             // 判断优惠券状态是否正确
             CouponTemplateDO couponTemplateDO = couponTemplateMapper.getCouponTemplateByShopNumberAndId(couponTaskDO.getShopNumber(), couponTaskDO.getCouponTemplateId());
+            if (ObjectUtil.isNull(couponTemplateDO)) {
+                log.error("[消费者] 优惠券推送任务正式执行 - 优惠券模板不存在：{}", couponTaskDO.getCouponTemplateId());
+                return;
+            }
             Integer status = couponTemplateDO.getStatus();
             if (ObjectUtil.notEqual(status, CouponTemplateStatusEnum.ACTIVE.getStatus())) {
-                log.error("[消费者] 优惠券推送任务正式执行 - 优惠券ID：{}，优惠券模板状态：{}", couponTaskDO.getCouponTemplateId(), status);
+                log.error("[消费者] 优惠券推送任务正式执行 - 优惠券模板状态异常 - 优惠券ID：{}，优惠券模板状态：{}", couponTaskDO.getCouponTemplateId(), status);
                 return;
             }
 
@@ -70,10 +78,11 @@ public class CouponTaskExecuteConsumer {
                     userCouponMapper,
                     couponTaskMapper
             );
+            log.info("[消费者] 优惠券推送任务正式执行 - 开始读取Excel文件：{}", couponTaskDO.getFileAddress());
             EasyExcel.read(couponTaskDO.getFileAddress(), CouponTaskExcelObject.class, readExcelDistributionListener).sheet().doRead();
 
         } catch (Exception e) {
-            log.error("监听活动sku库存消耗为0消息，消费失败 topic: {} message: {}", topic, message);
+            log.error("监听[消费者] 优惠券推送任务，消费失败 topic: {} message: {}", topic, message);
             throw e;
         }
     }

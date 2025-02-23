@@ -3,6 +3,7 @@ package com.springleaf.couponfury.merchant.admin.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.IdUtil;
 import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.support.ExcelTypeEnum;
 import com.alibaba.fastjson2.JSONObject;
 import com.springleaf.couponfury.framework.exception.ClientException;
 import com.springleaf.couponfury.merchant.admin.common.context.UserContext;
@@ -12,6 +13,8 @@ import com.springleaf.couponfury.merchant.admin.dao.entity.CouponTaskDO;
 import com.springleaf.couponfury.merchant.admin.dao.mapper.CouponTaskMapper;
 import com.springleaf.couponfury.merchant.admin.dto.req.CouponTaskCreateReqDTO;
 import com.springleaf.couponfury.merchant.admin.dto.resp.CouponTemplateQueryRespDTO;
+import com.springleaf.couponfury.merchant.admin.mq.event.CouponTaskExecuteMessageEvent;
+import com.springleaf.couponfury.merchant.admin.mq.producer.EventPublisher;
 import com.springleaf.couponfury.merchant.admin.service.CouponTaskService;
 import com.springleaf.couponfury.merchant.admin.service.CouponTemplateService;
 import com.springleaf.couponfury.merchant.admin.service.handle.excel.RowCountListener;
@@ -38,6 +41,10 @@ public class CouponTaskServiceImpl implements CouponTaskService {
     private CouponTemplateService couponTemplateService;
     @Resource
     private RedissonClient redissonClient;
+    @Resource
+    private EventPublisher eventPublisher;
+    @Resource
+    private CouponTaskExecuteMessageEvent couponTaskExecuteMessageEvent;
 
     /**
      * 为什么这里拒绝策略使用直接丢弃任务？因为在发送任务时如果遇到发送数量为空，会重新进行统计
@@ -101,7 +108,11 @@ public class CouponTaskServiceImpl implements CouponTaskService {
         // 这里延迟时间设置 20 秒，原因是我们笃定上面线程池 20 秒之内就能结束任务
         delayedQueue.offer(delayJsonObject, 20, TimeUnit.SECONDS);
 
+        // 如果是立即发送任务，直接调用消息队列进行发送流程
+        if (Objects.equals(requestParam.getSendType(), CouponTaskSendTypeEnum.IMMEDIATE.getType())) {
+            eventPublisher.publish(couponTaskExecuteMessageEvent.topic(), couponTaskExecuteMessageEvent.buildEventMessage(couponTaskDO.getId()));
 
+        }
     }
 
     private void refreshCouponTaskSendNum(JSONObject delayJsonObject) {
@@ -114,7 +125,9 @@ public class CouponTaskServiceImpl implements CouponTaskService {
 
         // 通过 EasyExcel 监听器获取 Excel 中所有行数
         RowCountListener listener = new RowCountListener();
-        EasyExcel.read(fileAddress, listener).sheet().doRead();
+        EasyExcel.read(fileAddress, listener)
+                .sheet()
+                .doRead();
         int totalRows = listener.getRowCount();
 
         // 刷新优惠券推送记录中发送行数

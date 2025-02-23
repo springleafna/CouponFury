@@ -16,6 +16,7 @@ import java.util.Date;
 public class CouponTaskExecuteMessageEvent extends BaseEvent<Long>{
 
     @Value("${spring.rabbitmq.topic.coupon-task-execute}")
+    private String topic;
 
     @Override
     public EventMessage<Long> buildEventMessage(Long taskId) {
@@ -28,6 +29,6 @@ public class CouponTaskExecuteMessageEvent extends BaseEvent<Long>{
 
     @Override
     public String topic() {
-        return topic();
+        return topic;
     }
 }

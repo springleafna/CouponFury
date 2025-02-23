@@ -26,7 +26,7 @@ public class CouponTaskCreateReqDTO {
     @Schema(description = "优惠券批次任务名称",
             // step1 调用 ExcelGenerateTests 里的单元测试用例，生成 Excel 测试示例文件
             // step2 复制项目目录下 tmp/oneCoupon任务推送Excel 的绝对路径，Windows 和 Mac 下有些许区别，Windows 下应该是 D:\Users\xxx\xxx
-            example = "D:\\javatools\\IDEAtool\\javaproject\\CouponFury\\tmp\\CouponFury任务推送Excel.xlsx",
+            example = "D:\\javatools\\IDEAtool\\javaproject\\CouponFury\\tmp\\CouponFury任务推送01Excel.xlsx",
             required = true)
     private String fileAddress;
 

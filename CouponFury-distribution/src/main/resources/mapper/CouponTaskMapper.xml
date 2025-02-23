@@ -30,7 +30,7 @@
         WHERE id = #{id}
     </update>
 
-    <select id="selectCouponTaskById"
+    <select id="getCouponTaskById"
             resultMap="dataMap">
         SELECT *
         FROM t_coupon_task
