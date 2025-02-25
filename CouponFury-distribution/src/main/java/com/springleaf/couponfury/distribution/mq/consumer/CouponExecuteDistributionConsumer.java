@@ -69,7 +69,7 @@ public class CouponExecuteDistributionConsumer {
     @Resource
     private CouponExecuteDistributionConsumer couponExecuteDistributionConsumer;
 
-    private final static int BATCH_USER_COUPON_SIZE = 5000;
+    private final static int BATCH_USER_COUPON_SIZE = 1000;
     private static final String BATCH_SAVE_USER_COUPON_LUA_PATH = "lua/batch_user_coupon_list.lua";
 
     @Transactional(rollbackFor = Exception.class)
@@ -79,7 +79,7 @@ public class CouponExecuteDistributionConsumer {
             log.info("[消费者] 优惠券推送任务正式执行 - 执行消费逻辑，topic: {}, message: {}", topic, message);
             // 将消息转换成CouponTemplateDistributionMessage对象
             BaseEvent.EventMessage<CouponTemplateDistributionEvent.CouponTemplateDistributionMessage> eventMessage = JSON.parseObject(message,
-                    new TypeReference<CouponTemplateDistributionEvent.CouponTemplateDistributionMessage>() {
+                    new TypeReference<BaseEvent.EventMessage<CouponTemplateDistributionEvent.CouponTemplateDistributionMessage>>() {
                     }.getType());
 
             CouponTemplateDistributionEvent.CouponTemplateDistributionMessage messageData = eventMessage.getData();
@@ -87,7 +87,6 @@ public class CouponExecuteDistributionConsumer {
             // 判断保存用户优惠券集合是否达到批量保存数量
             if (!messageData.getDistributionEndFlag() && messageData.getBatchUserSetSize() % BATCH_USER_COUPON_SIZE == 0) {
                 decrementCouponTemplateStockAndSaveUserCouponList(messageData);
-                return;
             }
 
             // 分发任务结束标识为 TRUE，代表已经没有 Excel 记录了
@@ -147,48 +146,59 @@ public class CouponExecuteDistributionConsumer {
         List<String> batchUserMaps = stringRedisTemplate.opsForSet().pop(batchUserSetKey, couponTemplateStock);
 
         // 因为 batchUserIds 数据较多，ArrayList 会进行数次扩容，为了避免额外性能消耗，直接初始化 batchUserIds 大小的数组
-        List<UserCouponDO> userCouponDOList = new ArrayList<>(batchUserMaps.size());
+        List<UserCouponDO> userCouponDOList = null;
+        if (batchUserMaps != null) {
+            userCouponDOList = new ArrayList<>(batchUserMaps.size());
+        }
 
         Date now = new Date();
         // 构建 userCouponDOList 用户优惠券批量数组
-        for (String each : batchUserMaps) {
-            JSONObject userIdAndRowNumJsonObject = JSON.parseObject(each);
-            DateTime validEndTime = DateUtil.offsetHour(now, JSON.parseObject(event.getCouponTemplateConsumeRule()).getInteger("validityPeriod"));
-            UserCouponDO userCouponDO = UserCouponDO.builder()
-                    .id(IdUtil.getSnowflakeNextId())
-                    .couponTemplateId(event.getCouponTemplateId())
-                    .rowNum(userIdAndRowNumJsonObject.getInteger("rowNum"))
-                    .userId(userIdAndRowNumJsonObject.getLong("userId"))
-                    .receiveTime(now)
-                    .receiveCount(1) // 代表第一次领取该优惠券
-                    .validStartTime(now)
-                    .validEndTime(validEndTime)
-                    .source(CouponSourceEnum.PLATFORM.getType())
-                    .status(CouponStatusEnum.EFFECTIVE.getType())
-                    .createTime(new Date())
-                    .updateTime(new Date())
-                    .delFlag(0)
-                    .build();
-            userCouponDOList.add(userCouponDO);
+        if (batchUserMaps != null) {
+            for (String each : batchUserMaps) {
+                JSONObject userIdAndRowNumJsonObject = JSON.parseObject(each);
+                DateTime validEndTime = DateUtil.offsetHour(now, JSON.parseObject(event.getCouponTemplateConsumeRule()).getInteger("validityPeriod"));
+                UserCouponDO userCouponDO = UserCouponDO.builder()
+                        .id(IdUtil.getSnowflakeNextId())
+                        .couponTemplateId(event.getCouponTemplateId())
+                        .rowNum(userIdAndRowNumJsonObject.getInteger("rowNum"))
+                        .userId(userIdAndRowNumJsonObject.getLong("userId"))
+                        .receiveTime(now)
+                        .receiveCount(1) // 代表第一次领取该优惠券
+                        .validStartTime(now)
+                        .validEndTime(validEndTime)
+                        .source(CouponSourceEnum.PLATFORM.getType())
+                        .status(CouponStatusEnum.EFFECTIVE.getType())
+                        .createTime(new Date())
+                        .updateTime(new Date())
+                        .delFlag(0)
+                        .build();
+                userCouponDOList.add(userCouponDO);
+            }
         }
         // 平台优惠券每个用户限领一次。批量新增用户优惠券记录，底层通过递归方式直到全部新增成功
         batchSaveUserCouponList(event.getCouponTemplateId(), event.getCouponTaskBatchId(), userCouponDOList);
 
         // 将这些优惠券添加到用户的领券记录中
-        List<String> userIdList = userCouponDOList.stream()
-                .map(UserCouponDO::getUserId)
-                .map(String::valueOf)
-                .toList();
+        List<String> userIdList = null;
+        if (userCouponDOList != null) {
+            userIdList = userCouponDOList.stream()
+                    .map(UserCouponDO::getUserId)
+                    .map(String::valueOf)
+                    .toList();
+        }
         String userIdsJson = new ObjectMapper().writeValueAsString(userIdList);
 
-        List<String> couponIdList = userCouponDOList.stream()
-                .map(each -> StrUtil.builder()
-                        .append(event.getCouponTemplateId())
-                        .append("_")
-                        .append(each.getId())
-                        .toString())
-                .map(String::valueOf)
-                .toList();
+        List<String> couponIdList = null;
+        if (userCouponDOList != null) {
+            couponIdList = userCouponDOList.stream()
+                    .map(each -> StrUtil.builder()
+                            .append(event.getCouponTemplateId())
+                            .append("_")
+                            .append(each.getId())
+                            .toString())
+                    .map(String::valueOf)
+                    .toList();
+        }
         String couponIdsJson = new ObjectMapper().writeValueAsString(couponIdList);
 
         // 调用 Lua 脚本时，传递参数

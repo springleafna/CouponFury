@@ -25,7 +25,7 @@ public final class ExcelGenerateTests {
     /**
      * 写入优惠券推送示例 Excel 的数据，自行控制即可
      */
-    private final int writeNum = 5001;
+    private final int writeNum = 10;
     private final Faker faker = new Faker(Locale.CHINA);
     private final String excelPath = Paths.get("").toAbsolutePath().getParent() + "/tmp";
 
@@ -34,7 +34,7 @@ public final class ExcelGenerateTests {
         if (!FileUtil.exist(excelPath)) {
             FileUtil.mkdir(excelPath);
         }
-        String fileName = excelPath + "/CouponFury任务推送02Excel.xlsx";
+        String fileName = excelPath + "/CouponFury任务推送03Excel.xlsx";
         EasyExcel.write(fileName, ExcelGenerateDemoData.class).sheet("优惠券推送列表").doWrite(data());
     }
 

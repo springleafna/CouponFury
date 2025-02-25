@@ -42,8 +42,8 @@ public class ReadExcelDistributionListener extends AnalysisEventListener<CouponT
 
     private int rowCount = 1;
     private final static String STOCK_DECREMENT_AND_BATCH_SAVE_USER_RECORD_LUA_PATH = "lua/stock_decrement_and_batch_save_user_record.lua";
-    // 每次批量分发用户优惠券的数量 每5000条记录发送一次消息 进行一次分发
-    private final static int BATCH_USER_COUPON_SIZE = 5000;
+    // 每次批量分发用户优惠券的数量 每1000条记录发送一次消息 进行一次分发
+    private final static int BATCH_USER_COUPON_SIZE = 1000;
 
     public ReadExcelDistributionListener(CouponTaskDO couponTaskDO, CouponTemplateDO couponTemplateDO, StringRedisTemplate stringRedisTemplate, CouponTaskFailMapper couponTaskFailMapper, CouponTemplateDistributionEvent couponTemplateDistributionEvent, EventPublisher eventPublisher) {
         this.couponTaskDO = couponTaskDO;
@@ -104,7 +104,7 @@ public class ReadExcelDistributionListener extends AnalysisEventListener<CouponT
 
             // 添加到 t_coupon_task_fail 并标记错误原因，方便后续查看未成功发送的原因和记录
             Map<Object, Object> objectMap = MapUtil.builder()
-                    .put("rowNum", rowCount)
+                    .put("rowNum", rowCount + 1)
                     .put("cause", "优惠券模板无库存")
                     .build();
             CouponTaskFailDO couponTaskFailDO = CouponTaskFailDO.builder()
@@ -119,7 +119,7 @@ public class ReadExcelDistributionListener extends AnalysisEventListener<CouponT
         int batchUserSetSize = StockDecrementReturnCombinedUtil.extractSecondField(combinedFiled.intValue());
 
         // batchUserSetSize = BATCH_USER_COUPON_SIZE 时发送消息消费，不满足条件仅记录执行进度即可
-        if (batchUserSetSize < BATCH_USER_COUPON_SIZE) {
+        if (batchUserSetSize < BATCH_USER_COUPON_SIZE || batchUserSetSize % BATCH_USER_COUPON_SIZE != 0) {
             // 同步当前 Excel 执行进度到缓存
             stringRedisTemplate.opsForValue().set(templateTaskExecuteProgressKey, String.valueOf(rowCount));
             ++rowCount;
@@ -128,7 +128,7 @@ public class ReadExcelDistributionListener extends AnalysisEventListener<CouponT
 
         // 发送消息队列执行用户优惠券模板分发逻辑
         CouponTemplateDistributionEvent.CouponTemplateDistributionMessage couponTemplateDistributionMessage = CouponTemplateDistributionEvent.CouponTemplateDistributionMessage.builder()
-                .couponTemplateId(couponTemplateDO.getId())
+                .couponTaskId(couponTaskId)
                 .shopNumber(couponTaskDO.getShopNumber())
                 .couponTemplateId(couponTemplateDO.getId())
                 .couponTaskBatchId(couponTaskDO.getBatchId())
