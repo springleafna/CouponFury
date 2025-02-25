@@ -8,10 +8,12 @@ import com.springleaf.couponfury.distribution.common.enums.CouponTaskStatusEnum;
 import com.springleaf.couponfury.distribution.common.enums.CouponTemplateStatusEnum;
 import com.springleaf.couponfury.distribution.dao.entity.CouponTaskDO;
 import com.springleaf.couponfury.distribution.dao.entity.CouponTemplateDO;
+import com.springleaf.couponfury.distribution.dao.mapper.CouponTaskFailMapper;
 import com.springleaf.couponfury.distribution.dao.mapper.CouponTaskMapper;
 import com.springleaf.couponfury.distribution.dao.mapper.CouponTemplateMapper;
-import com.springleaf.couponfury.distribution.dao.mapper.UserCouponMapper;
 import com.springleaf.couponfury.distribution.mq.event.BaseEvent;
+import com.springleaf.couponfury.distribution.mq.event.CouponTemplateDistributionEvent;
+import com.springleaf.couponfury.distribution.mq.producer.EventPublisher;
 import com.springleaf.couponfury.distribution.service.handler.excel.CouponTaskExcelObject;
 import com.springleaf.couponfury.distribution.service.handler.excel.ReadExcelDistributionListener;
 import jakarta.annotation.Resource;
@@ -22,6 +24,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
+/**
+ * 解析并执行优惠券分发任务的 Excel 模板
+ * 进行 Excel 模板解析和前置校验，包括数据格式的正确性检查以及当前优惠券模板的库存情况
+ */
 @Slf4j(topic = "CouponTaskExecuteConsumer")
 @Component
 public class CouponTaskExecuteConsumer {
@@ -34,9 +40,13 @@ public class CouponTaskExecuteConsumer {
     @Resource
     private CouponTemplateMapper couponTemplateMapper;
     @Resource
-    private UserCouponMapper userCouponMapper;
+    private CouponTaskFailMapper couponTaskFailMapper;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+    @Resource
+    private EventPublisher eventPublisher;
+    @Resource
+    private CouponTemplateDistributionEvent couponTemplateDistributionEvent;
 
     @RabbitListener(queuesToDeclare = @Queue(value = "coupon.task.execute"))
     public void listen(String message) {
@@ -71,12 +81,12 @@ public class CouponTaskExecuteConsumer {
 
             // 正式开始执行优惠券推送任务
             ReadExcelDistributionListener readExcelDistributionListener = new ReadExcelDistributionListener(
-                    couponTaskId,
+                    couponTaskDO,
                     couponTemplateDO,
                     stringRedisTemplate,
-                    couponTemplateMapper,
-                    userCouponMapper,
-                    couponTaskMapper
+                    couponTaskFailMapper,
+                    couponTemplateDistributionEvent,
+                    eventPublisher
             );
             log.info("[消费者] 优惠券推送任务正式执行 - 开始读取Excel文件：{}", couponTaskDO.getFileAddress());
             EasyExcel.read(couponTaskDO.getFileAddress(), CouponTaskExcelObject.class, readExcelDistributionListener).sheet().doRead();

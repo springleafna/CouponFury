@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springleaf.couponfury.distribution.dao.mapper.CouponTaskFailMapper">
+
+    <resultMap id="dataMap" type="com.springleaf.couponfury.distribution.dao.entity.CouponTaskFailDO">
+        <id column="id" property="id" />
+        <result column="batch_id" property="batchId" />
+        <result column="json_object" property="jsonObject" />
+    </resultMap>
+
+    <insert id="saveCouponTaskFail">
+        INSERT INTO t_coupon_task_fail (batch_id, json_object)
+        VALUES (#{batchId}, #{jsonObject})
+    </insert>
+
+    <insert id="saveCouponTaskFailList" parameterType="java.util.List">
+        INSERT INTO t_coupon_task_fail (batch_id, json_object)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.batchId}, #{item.jsonObject})
+        </foreach>
+    </insert>
+
+
+</mapper>

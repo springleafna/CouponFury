@@ -25,5 +25,23 @@
                 #{useTime}, #{source}, #{status}, #{createTime}, #{updateTime}, #{delFlag})
     </insert>
 
+    <insert id="saveUserCouponList" parameterType="java.util.List">
+        INSERT INTO t_user_coupon (user_id, coupon_template_id, receive_time, receive_count, valid_start_time,
+                                   valid_end_time, use_time, source, status, create_time, update_time, del_flag)
+        VALUES
+            <foreach collection="list" item="item" separator=",">
+                (#{item.userId}, #{item.couponTemplateId}, #{item.receiveTime}, #{item.receiveCount},
+                 #{item.validStartTime}, #{item.validEndTime}, #{item.useTime}, #{item.source}, #{item.status},
+                 #{item.createTime}, #{item.updateTime}, #{item.delFlag})
+            </foreach>
+    </insert>
+
+    <select id="getUserCouponByCouponTemplateIdAndUserId"
+            resultType="com.springleaf.couponfury.distribution.dao.entity.UserCouponDO">
+        SELECT * FROM t_user_coupon
+        WHERE coupon_template_id = #{couponTemplateId}
+        ANd user_id = #{userId}
+    </select>
+
 
 </mapper>
