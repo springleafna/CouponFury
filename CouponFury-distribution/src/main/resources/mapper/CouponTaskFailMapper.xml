@@ -21,5 +21,14 @@
         </foreach>
     </insert>
 
+    <select id="getTaskFailList"
+            resultMap="dataMap">
+        SELECT id, batch_id, json_object
+        FROM t_coupon_task_fail
+        WHERE batch_id = #{batchId}
+        AND id > #{maxId}
+        LIMIT #{batchUserCouponSize}
+    </select>
+
 
 </mapper>
