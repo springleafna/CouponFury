@@ -8,6 +8,7 @@ import java.util.List;
 
 @Mapper
 public interface CouponTaskFailMapper {
+
     void saveCouponTaskFail(CouponTaskFailDO couponTaskFailDO);
 
     /**

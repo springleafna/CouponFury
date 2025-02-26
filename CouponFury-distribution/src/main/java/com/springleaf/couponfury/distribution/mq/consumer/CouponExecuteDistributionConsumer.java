@@ -114,7 +114,7 @@ public class CouponExecuteDistributionConsumer {
                     for (String batchUserMapStr : batchUserMaps) {
                         Map<Object, Object> objectMap = MapUtil.builder()
                                 .put("rowNum", JSON.parseObject(batchUserMapStr).get("rowNum"))
-                                .put("cause", "用户已领取该优惠券")
+                                .put("cause", "优惠券模板库存不足")
                                 .build();
                         CouponTaskFailDO couponTaskFailDO = CouponTaskFailDO.builder()
                                 .batchId(messageData.getCouponTaskBatchId())
@@ -127,8 +127,11 @@ public class CouponExecuteDistributionConsumer {
                     couponTaskFailMapper.saveCouponTaskFailList(couponTaskFailDOList);
                 }
 
+                // 分页查询的起始 ID
+                // 每次查询的记录为 initId ~ BATCH_USER_COUPON_SIZE，比如： 0~1000，1000~2000，2000~3000。。。。。。
                 long initId = 0;
-                boolean isFirstIteration = true;  // 用于标识是否为第一次迭代
+                // 用于标识是否为第一次迭代 (判断是否需要创建 Excel 文件 如果第一次迭代发现无数据，则将 failFileAddress 设置为 null 不创建 Excel 文件)
+                boolean isFirstIteration = true;
                 String failFileAddress = excelPath + "/用户分发记录失败Excel-" + messageData.getCouponTaskBatchId() + ".xlsx";
 
                 // 这里应该上传云 OSS 或者 MinIO 等存储平台，但是增加部署成功并且不太好往简历写就仅写入本地
@@ -226,7 +229,7 @@ public class CouponExecuteDistributionConsumer {
         // 平台优惠券每个用户限领一次。批量新增用户优惠券记录，底层通过递归方式直到全部新增成功
         batchSaveUserCouponList(event.getCouponTemplateId(), event.getCouponTaskBatchId(), userCouponDOList);
 
-        // 将这些优惠券添加到用户的领券记录中
+        // 将这些优惠券添加到用户的领券记录 Redis缓存 中
         List<String> userIdList = null;
         if (userCouponDOList != null) {
             userIdList = userCouponDOList.stream()
@@ -263,6 +266,7 @@ public class CouponExecuteDistributionConsumer {
         stringRedisTemplate.execute(buildLuaScript, keys, args.toArray());
     }
 
+    // 扣减数据库中优惠券模板的库存
     private Integer decrementCouponTemplateStock(CouponTemplateDistributionEvent.CouponTemplateDistributionMessage event, Integer decrementStockSize) {
         // 通过乐观机制自减优惠券库存记录
         Long couponTemplateId = event.getCouponTemplateId();
@@ -293,6 +297,7 @@ public class CouponExecuteDistributionConsumer {
                     try {
                         userCouponMapper.saveUserCoupon(each);
                     } catch (Exception ignored) {
+                        // 查询用户是否已经领取过优惠券
                         Boolean hasReceived = couponExecuteDistributionConsumer.hasUserReceivedCoupon(couponTemplateId, each.getUserId());
                         if (hasReceived) {
                             // 添加到 t_coupon_task_fail 并标记错误原因，方便后续查看未成功发送的原因和记录

@@ -9,12 +9,12 @@
     </resultMap>
 
     <insert id="saveCouponTaskFail">
-        INSERT INTO t_coupon_task_fail (batch_id, json_object)
+        INSERT INTO t_coupon_task_fail (`batch_id`, `json_object`)
         VALUES (#{batchId}, #{jsonObject})
     </insert>
 
     <insert id="saveCouponTaskFailList" parameterType="java.util.List">
-        INSERT INTO t_coupon_task_fail (batch_id, json_object)
+        INSERT INTO t_coupon_task_fail (`batch_id`, `json_object`)
         VALUES
         <foreach collection="list" item="item" separator=",">
             (#{item.batchId}, #{item.jsonObject})
@@ -23,10 +23,11 @@
 
     <select id="getTaskFailList"
             resultMap="dataMap">
-        SELECT id, batch_id, json_object
+        SELECT `id`, `batch_id`, `json_object`
         FROM t_coupon_task_fail
         WHERE batch_id = #{batchId}
         AND id > #{maxId}
+        ORDER BY id
         LIMIT #{batchUserCouponSize}
     </select>
 

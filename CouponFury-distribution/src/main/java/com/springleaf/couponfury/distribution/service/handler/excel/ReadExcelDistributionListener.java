@@ -7,6 +7,7 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import com.springleaf.couponfury.distribution.common.constant.DistributionRedisConstant;
 import com.springleaf.couponfury.distribution.common.constant.EngineRedisConstant;
 import com.springleaf.couponfury.distribution.dao.entity.CouponTaskDO;
@@ -104,12 +105,12 @@ public class ReadExcelDistributionListener extends AnalysisEventListener<CouponT
 
             // 添加到 t_coupon_task_fail 并标记错误原因，方便后续查看未成功发送的原因和记录
             Map<Object, Object> objectMap = MapUtil.builder()
-                    .put("rowNum", rowCount + 1)
+                    .put("rowNum", rowCount)
                     .put("cause", "优惠券模板无库存")
                     .build();
             CouponTaskFailDO couponTaskFailDO = CouponTaskFailDO.builder()
                     .batchId(couponTaskDO.getBatchId())
-                    .jsonObject(JSON.toJSONString(objectMap))
+                    .jsonObject(JSON.toJSONString(objectMap, JSONWriter.Feature.WriteNulls))
                     .build();
             couponTaskFailMapper.saveCouponTaskFail(couponTaskFailDO);
             return;

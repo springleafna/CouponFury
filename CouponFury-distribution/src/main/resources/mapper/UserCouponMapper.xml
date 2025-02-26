@@ -32,26 +32,19 @@
         status, create_time, update_time, del_flag
         ) VALUES
         <foreach collection="list" item="item" separator=",">
-            (#{item.userId},
-            #{item.couponTemplateId},
-            #{item.receiveTime},
-            #{item.receiveCount},
+            (#{item.userId}, #{item.couponTemplateId}, #{item.receiveTime}, #{item.receiveCount},
             #{item.validStartTime},
-            #{item.validEndTime},
-            #{item.useTime},
-            #{item.source},
-            #{item.status},
-            #{item.createTime},
-            #{item.updateTime},
-            #{item.delFlag})
+            #{item.validEndTime}, #{item.useTime}, #{item.source}, #{item.status}, #{item.createTime},
+            #{item.updateTime}, #{item.delFlag})
         </foreach>
     </insert>
 
     <select id="getUserCouponByCouponTemplateIdAndUserId"
             resultType="com.springleaf.couponfury.distribution.dao.entity.UserCouponDO">
-        SELECT * FROM t_user_coupon
+        SELECT *
+        FROM t_user_coupon
         WHERE coupon_template_id = #{couponTemplateId}
-        AND user_id = #{userId}
+          AND user_id = #{userId}
     </select>
 
 
