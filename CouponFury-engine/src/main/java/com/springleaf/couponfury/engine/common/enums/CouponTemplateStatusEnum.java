@@ -1,12 +1,10 @@
 package com.springleaf.couponfury.engine.common.enums;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 /**
  * 优惠券模板状态枚举
  */
-@RequiredArgsConstructor
 public enum CouponTemplateStatusEnum {
 
     /**
@@ -21,4 +19,8 @@ public enum CouponTemplateStatusEnum {
 
     @Getter
     private final int status;
+
+    CouponTemplateStatusEnum(int status) {
+        this.status = status;
+    }
 }

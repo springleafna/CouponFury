@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springleaf.couponfury.engine.dao.mapper.UserCouponMapper">
+
+    <resultMap id="dataMap" type="com.springleaf.couponfury.engine.dao.entity.UserCouponDO">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="coupon_template_id" property="couponTemplateId"/>
+        <result column="receive_time" property="receiveTime"/>
+        <result column="receive_count" property="receiveCount"/>
+        <result column="valid_start_time" property="validStartTime"/>
+        <result column="valid_end_time" property="validEndTime"/>
+        <result column="use_time" property="useTime"/>
+        <result column="source" property="source"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="del_flag" property="delFlag"/>
+    </resultMap>
+
+    <!-- 通过乐观机制原子扣减优惠券模板库存 -->
+    <update id="decrementCouponTemplateStock">
+        UPDATE t_coupon_template
+        SET stock = stock - #{decrementStock}
+        WHERE shop_number = #{shopNumber}
+          AND id = #{couponTemplateId}
+          AND stock >= #{decrementStock}
+    </update>
+
+
+</mapper>
