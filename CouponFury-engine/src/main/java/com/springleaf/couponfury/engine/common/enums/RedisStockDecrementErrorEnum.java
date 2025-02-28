@@ -2,24 +2,16 @@ package com.springleaf.couponfury.engine.common.enums;
 
 import lombok.Getter;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
- * Redis 扣减优惠券库存错误枚举
+ * Redis 扣减优惠券库存错误枚举（优化版）
  */
 public enum RedisStockDecrementErrorEnum {
 
-    /**
-     * 成功
-     */
     SUCCESS(0, "成功"),
-
-    /**
-     * 库存不足
-     */
     STOCK_INSUFFICIENT(1, "优惠券已被领取完啦"),
-
-    /**
-     * 用户已经达到领取上限
-     */
     LIMIT_REACHED(2, "用户已经达到领取上限");
 
     @Getter
@@ -27,38 +19,31 @@ public enum RedisStockDecrementErrorEnum {
     @Getter
     private final String message;
 
-    /**
-     * 根据 code 找到对应的枚举实例判断是否成功标识
-     *
-     * @param code 要查找的编码
-     * @return 是否成功标识
-     */
-    public static boolean isFail(long code) {
-        for (RedisStockDecrementErrorEnum status : values()) {
-            if (status.code == code) {
-                return status != SUCCESS;
-            }
-        }
-        return false;
-    }
+    private static final Map<Long, RedisStockDecrementErrorEnum> CODE_MAP = new HashMap<>();
 
-    /**
-     * 根据 type 找到对应的枚举实例
-     *
-     * @param code 要查找的编码
-     * @return 对应的枚举实例
-     */
-    public static String fromType(long code) {
-        for (RedisStockDecrementErrorEnum method : RedisStockDecrementErrorEnum.values()) {
-            if (method.getCode() == code) {
-                return method.getMessage();
-            }
+    static {
+        for (RedisStockDecrementErrorEnum value : values()) {
+            CODE_MAP.put(value.code, value);
         }
-        throw new IllegalArgumentException("Invalid code: " + code);
     }
 
     RedisStockDecrementErrorEnum(long code, String message) {
         this.code = code;
         this.message = message;
+    }
+
+    /**
+     * 根据 code 获取错误描述
+     */
+    public static String getMessageByCode(long code) {
+        RedisStockDecrementErrorEnum status = CODE_MAP.get(code);
+        return status != null ? status.getMessage() : "未知错误";
+    }
+
+    /**
+     * 判断是否失败（code != 0）
+     */
+    public static boolean isFailedCode(long code) {
+        return code != SUCCESS.code;
     }
 }

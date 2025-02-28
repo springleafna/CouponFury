@@ -9,7 +9,7 @@ import java.util.List;
 
 @Mapper
 public interface CouponTaskMapper {
-    public void saveCouponTask(CouponTaskDO couponTaskDO);
+    void saveCouponTask(CouponTaskDO couponTaskDO);
 
     void updateCouponTaskSendNumById(@Param("id") long id, @Param("sendNum") int sendNum);
 

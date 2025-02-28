@@ -44,4 +44,13 @@
           and id = #{couponTemplateId}
     </select>
 
+    <!-- 通过乐观机制原子扣减优惠券模板库存 -->
+    <update id="decrementCouponTemplateStock">
+        UPDATE t_coupon_template
+        SET stock = stock - #{decrementStock}
+        WHERE shop_number = #{shopNumber}
+          AND id = #{couponTemplateId}
+          AND stock >= #{decrementStock}
+    </update>
+
 </mapper>

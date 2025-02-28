@@ -2,6 +2,8 @@ package com.springleaf.couponfury.engine.toolkit;
 
 /**
  * 扣减优惠券模板库存复合返回工具类
+ * firstField: 请求是否成功：有 3 个参数，0 代表请求成功，1 代表优惠券已被领取完，2 代表用户已经达到领取上限。
+ * secondField: 用户领取次数：初始化为 0，每次领取成功后自增加 1。
  */
 public final class StockDecrementReturnCombinedUtil {
 

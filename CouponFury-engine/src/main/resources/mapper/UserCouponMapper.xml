@@ -18,14 +18,11 @@
         <result column="del_flag" property="delFlag"/>
     </resultMap>
 
-    <!-- 通过乐观机制原子扣减优惠券模板库存 -->
-    <update id="decrementCouponTemplateStock">
-        UPDATE t_coupon_template
-        SET stock = stock - #{decrementStock}
-        WHERE shop_number = #{shopNumber}
-          AND id = #{couponTemplateId}
-          AND stock >= #{decrementStock}
-    </update>
-
+    <insert id="saveUserCoupon">
+        INSERT INTO t_user_coupon (user_id, coupon_template_id, receive_time, receive_count, valid_start_time,
+                                   valid_end_time, use_time, source, status, create_time, update_time, del_flag)
+        VALUES (#{userId}, #{couponTemplateId}, #{receiveTime}, #{receiveCount}, #{validStartTime}, #{validEndTime},
+                #{useTime}, #{source}, #{status}, #{createTime}, #{updateTime}, #{delFlag})
+    </insert>
 
 </mapper>
