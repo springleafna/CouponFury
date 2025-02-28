@@ -18,11 +18,11 @@
         <result column="del_flag" property="delFlag"/>
     </resultMap>
 
-    <insert id="saveUserCoupon">
+    <insert id="saveUserCoupon" keyProperty="id" useGeneratedKeys="true">
         INSERT INTO t_user_coupon (user_id, coupon_template_id, receive_time, receive_count, valid_start_time,
                                    valid_end_time, use_time, source, status, create_time, update_time, del_flag)
         VALUES (#{userId}, #{couponTemplateId}, #{receiveTime}, #{receiveCount}, #{validStartTime}, #{validEndTime},
-                #{useTime}, #{source}, #{status}, #{createTime}, #{updateTime}, #{delFlag})
+                #{useTime}, #{source}, #{status}, now(), now(), 0)
     </insert>
 
 </mapper>

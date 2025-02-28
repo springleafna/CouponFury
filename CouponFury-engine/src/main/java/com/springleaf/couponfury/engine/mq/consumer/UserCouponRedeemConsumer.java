@@ -17,10 +17,12 @@ import com.springleaf.couponfury.engine.mq.event.BaseEvent;
 import com.springleaf.couponfury.engine.mq.event.UserCouponRedeemEvent;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 
@@ -40,7 +42,8 @@ public class UserCouponRedeemConsumer {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
-    @RabbitListener(queues = "${user.coupon.redeem}")
+    @Transactional(rollbackFor = Exception.class)
+    @RabbitListener(queuesToDeclare = @Queue(value = "user.coupon.redeem"))
     public void listener(String message) {
         try {
             log.info("[消费者] 用户兑换优惠券 - 执行消费逻辑，topic: {}, message: {}", topic, message);
