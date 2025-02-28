@@ -49,7 +49,7 @@ public class CouponTaskExecuteConsumer {
     private CouponTemplateDistributionEvent couponTemplateDistributionEvent;
 
     @RabbitListener(queuesToDeclare = @Queue(value = "coupon.task.execute"))
-    public void listen(String message) {
+    public void listener(String message) {
         try {
             log.info("[消费者] 优惠券推送任务正式执行 - 执行消费逻辑，topic: {}, message: {}", topic, message);
             // 转换对象

@@ -82,7 +82,7 @@ public class CouponExecuteDistributionConsumer {
 
     @Transactional(rollbackFor = Exception.class)
     @RabbitListener(queuesToDeclare = @Queue(value = "coupon.execute.distribution"))
-    public void listen(String message) throws JsonProcessingException {
+    public void listener(String message) throws JsonProcessingException {
         try {
             log.info("[消费者] 优惠券推送任务正式执行 - 执行消费逻辑，topic: {}, message: {}", topic, message);
             // 将消息转换成CouponTemplateDistributionMessage对象
