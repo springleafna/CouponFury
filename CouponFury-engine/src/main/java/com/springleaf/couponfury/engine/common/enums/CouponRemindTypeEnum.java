@@ -1,0 +1,48 @@
+package com.springleaf.couponfury.engine.common.enums;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+/**
+ * 预约提醒方式枚举类，值必须是0，1，2，3......
+ */
+public enum CouponRemindTypeEnum {
+
+    /**
+     * App 通知
+     */
+    EMAIL(0, "App通知"),
+
+    /**
+     * 邮件提醒
+     */
+    MESSAGE(1, "邮件提醒");
+
+    @Getter
+    private final int type;
+    @Getter
+    private final String describe;
+
+    public static CouponRemindTypeEnum getByType(Integer type) {
+        for (CouponRemindTypeEnum remindEnum : values()) {
+            if (remindEnum.getType() == type) {
+                return remindEnum;
+            }
+        }
+        return null;
+    }
+
+    public static String getDescribeByType(Integer type) {
+        for (CouponRemindTypeEnum remindEnum : values()) {
+            if (remindEnum.getType() == type) {
+                return remindEnum.getDescribe();
+            }
+        }
+        return null;
+    }
+
+    CouponRemindTypeEnum(int type, String describe) {
+        this.type = type;
+        this.describe = describe;
+    }
+}
