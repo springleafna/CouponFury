@@ -81,6 +81,7 @@ public class UserCouponRedeemConsumer {
             userCouponMapper.saveUserCoupon(userCouponDO);
 
             // 添加用户领取优惠券模板缓存记录
+            // TODO:这里的用户id应该是兑换优惠券的用户id，而不是商家的id
             String userCouponListCacheKey = String.format(EngineRedisConstant.USER_COUPON_TEMPLATE_LIST_KEY, UserContext.getUserId());
             String userCouponItemCacheKey = StrUtil.builder()
                     .append(requestParam.getCouponTemplateId())
