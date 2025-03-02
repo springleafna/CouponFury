@@ -16,7 +16,11 @@ import com.springleaf.couponfury.engine.toolkit.CouponTemplateRemindUtil;
 import com.springleaf.couponfury.framework.exception.ClientException;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 优惠券预约提醒业务逻辑实现层
+ */
 @Service
 public class CouponTemplateRemindServiceImpl implements CouponTemplateRemindService {
 
@@ -30,6 +34,7 @@ public class CouponTemplateRemindServiceImpl implements CouponTemplateRemindServ
     private EventPublisher eventPublisher;
 
     @Override
+    @Transactional
     public void createCouponRemind(CouponTemplateRemindCreateReqDTO requestParam) {
         // // 验证优惠券是否存在，避免缓存穿透问题并获取优惠券开抢时间
         CouponTemplateQueryRespDTO couponTemplate = couponTemplateService

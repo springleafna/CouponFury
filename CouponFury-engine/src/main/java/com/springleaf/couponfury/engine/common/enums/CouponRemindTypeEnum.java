@@ -11,12 +11,12 @@ public enum CouponRemindTypeEnum {
     /**
      * App 通知
      */
-    EMAIL(0, "App通知"),
+    APP(0, "App通知"),
 
     /**
      * 邮件提醒
      */
-    MESSAGE(1, "邮件提醒");
+    EMAIL(1, "邮件提醒");
 
     @Getter
     private final int type;
