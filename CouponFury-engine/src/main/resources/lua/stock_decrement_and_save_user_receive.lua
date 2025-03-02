@@ -1,4 +1,5 @@
--- Lua 脚本: 检查用户是否达到优惠券领取上限并记录领取次数
+-- Lua 脚本: 优惠券领取逻辑（原子化操作）
+-- 作用: 检查库存和用户领取限制，扣减库存并记录领取次数，返回组合状态码
 
 -- 参数列表：
 -- KEYS[1]: 优惠券库存键 (coupon_stock_key)
@@ -21,17 +22,18 @@ local function combineFields(firstField, secondField)
     return shiftedFirstField + secondField
 end
 
+-- 1. 检查优惠券库存
 -- 获取当前库存
 local stock = tonumber(redis.call('HGET', KEYS[1], 'stock'))
-
 -- 判断库存是否大于 0
 if stock <= 0 then
-    return combineFields(1, 0) -- 库存不足
+    -- 状态码 1: 库存不足，secondField 无意义（固定0）
+    return combineFields(1, 0)
 end
 
+-- 2. 检查用户领取次数限制
 -- 获取用户领取的优惠券次数
 local userCouponCount = tonumber(redis.call('GET', KEYS[2]))
-
 -- 如果用户领取次数不存在，则初始化为 0
 if userCouponCount == nil then
     userCouponCount = 0
@@ -39,12 +41,13 @@ end
 
 -- 判断用户是否已经达到领取上限
 if userCouponCount >= tonumber(ARGV[2]) then
-    return combineFields(2, userCouponCount) -- 用户已经达到领取上限
+    -- 状态码 2: 用户已经达到领取上限，返回当前已领取次数
+    return combineFields(2, userCouponCount)
 end
 
--- 增加用户领取的优惠券次数
+-- 3.增加用户领取的优惠券次数
 if userCouponCount == 0 then
-    -- 如果用户第一次领取，则需要添加过期时间
+    -- 如果用户第一次领取，设置初始值并添加过期时间
     redis.call('SET', KEYS[2], 1)
     redis.call('EXPIRE', KEYS[2], ARGV[1])
 else
@@ -52,7 +55,7 @@ else
     redis.call('INCR', KEYS[2])
 end
 
--- 减少优惠券库存
+-- 4.减少优惠券库存
 redis.call('HINCRBY', KEYS[1], 'stock', -1)
-
-return combineFields(0, userCouponCount)
+-- 注意: 由于已执行 INCR/SET，实际次数为 userCouponCount + 1
+return combineFields(0, userCouponCount + 1)

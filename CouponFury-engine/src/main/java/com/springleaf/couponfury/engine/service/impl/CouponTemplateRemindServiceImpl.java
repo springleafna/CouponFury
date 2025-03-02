@@ -1,12 +1,15 @@
 package com.springleaf.couponfury.engine.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.date.DateUtil;
 import com.springleaf.couponfury.engine.common.context.UserContext;
 import com.springleaf.couponfury.engine.dao.entity.CouponTemplateRemindDO;
 import com.springleaf.couponfury.engine.dao.mapper.CouponTemplateRemindMapper;
 import com.springleaf.couponfury.engine.dto.req.CouponTemplateQueryReqDTO;
 import com.springleaf.couponfury.engine.dto.req.CouponTemplateRemindCreateReqDTO;
 import com.springleaf.couponfury.engine.dto.resp.CouponTemplateQueryRespDTO;
+import com.springleaf.couponfury.engine.mq.event.CouponRemindDelayEvent;
+import com.springleaf.couponfury.engine.mq.producer.EventPublisher;
 import com.springleaf.couponfury.engine.service.CouponTemplateRemindService;
 import com.springleaf.couponfury.engine.service.CouponTemplateService;
 import com.springleaf.couponfury.engine.toolkit.CouponTemplateRemindUtil;
@@ -21,6 +24,10 @@ public class CouponTemplateRemindServiceImpl implements CouponTemplateRemindServ
     private CouponTemplateService couponTemplateService;
     @Resource
     private CouponTemplateRemindMapper couponTemplateRemindMapper;
+    @Resource
+    private CouponRemindDelayEvent couponRemindDelayEvent;
+    @Resource
+    private EventPublisher eventPublisher;
 
     @Override
     public void createCouponRemind(CouponTemplateRemindCreateReqDTO requestParam) {
@@ -38,6 +45,7 @@ public class CouponTemplateRemindServiceImpl implements CouponTemplateRemindServ
             // 设置优惠券开抢时间信息
             couponTemplateRemindDO.setStartTime(couponTemplate.getValidStartTime());
             couponTemplateRemindDO.setInformation(CouponTemplateRemindUtil.calculateBitMap(requestParam.getRemindTime(), requestParam.getType()));
+            // TODO:这里的用户id需要修改
             couponTemplateRemindDO.setUserId(Long.parseLong(UserContext.getUserId()));
 
             couponTemplateRemindMapper.saveCouponTemplateRemind(couponTemplateRemindDO);
@@ -47,12 +55,28 @@ public class CouponTemplateRemindServiceImpl implements CouponTemplateRemindServ
             if ((information & bitMap) != 0L) {
                 throw new ClientException("已经创建过该提醒了");
             }
+            // 异或运算合并用户已设置的提醒和新设置的提醒
             couponTemplateRemindDO.setInformation(information ^ bitMap);
 
             couponTemplateRemindMapper.updateCouponTemplateRemindInformation(couponTemplateRemindDO);
         }
 
-        // TODO:mq发送预约提醒抢购优惠券延时消息
+        // mq发送预约提醒抢购优惠券延时消息
+        long delayTime = DateUtil.offsetMinute(couponTemplate.getValidStartTime(), -requestParam.getRemindTime()).getTime();
+
+        CouponRemindDelayEvent.CouponRemindDelayMessage couponRemindDelayMessage = CouponRemindDelayEvent.CouponRemindDelayMessage.builder()
+                .couponTemplateId(couponTemplate.getId())
+                // TODO:这里的用户id需要修改
+                .userId(UserContext.getUserId())
+                .contact(UserContext.getUserId())
+                .shopNumber(couponTemplate.getShopNumber())
+                .type(requestParam.getType())
+                .remindTime(requestParam.getRemindTime())
+                .startTime(couponTemplate.getValidStartTime())
+                .delayTime(delayTime)
+                .build();
+
+        eventPublisher.delayPublish(couponRemindDelayEvent.topic(), couponRemindDelayEvent.buildEventMessage(couponRemindDelayMessage), (int) delayTime);
 
     }
 }

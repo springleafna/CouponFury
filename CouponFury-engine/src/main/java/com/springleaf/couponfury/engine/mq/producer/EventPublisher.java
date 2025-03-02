@@ -28,12 +28,27 @@ public class EventPublisher {
         }
     }
 
-    public void publish(String topic, String eventMessageJSON){
+    public void publish(String topic, String eventMessageJSON) {
         try {
             rabbitTemplate.convertAndSend(topic, eventMessageJSON);
             log.info("发送MQ消息 topic:{} message:{}", topic, eventMessageJSON);
         } catch (Exception e) {
             log.error("发送MQ消息失败 topic:{} message:{}", topic, eventMessageJSON, e);
+            throw e;
+        }
+    }
+
+    // 发送延迟消息
+    public void delayPublish(String topic, BaseEvent.EventMessage<?> eventMessage, Integer delayTime) {
+        try {
+            String messageJson = JSON.toJSONString(eventMessage);
+            rabbitTemplate.convertAndSend(topic, messageJson, message -> {
+                message.getMessageProperties().setDelay(delayTime);
+                return message;
+            });
+            log.info("延时发送MQ消息 topic:{} message:{} delayTime:{}", topic, messageJson, delayTime);
+        } catch (Exception e) {
+            log.error("延时发送MQ消息失败 topic:{} message:{} delayTime:{}", topic, JSON.toJSONString(eventMessage), delayTime, e);
             throw e;
         }
     }
