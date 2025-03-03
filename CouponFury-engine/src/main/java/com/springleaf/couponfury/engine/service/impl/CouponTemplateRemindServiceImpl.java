@@ -68,7 +68,6 @@ public class CouponTemplateRemindServiceImpl implements CouponTemplateRemindServ
 
         // mq发送预约提醒抢购优惠券延时消息
         long delayTime = DateUtil.offsetMinute(couponTemplate.getValidStartTime(), -requestParam.getRemindTime()).getTime() - DateUtil.date().getTime();
-        System.out.println("----------delayTime-------:" + delayTime);
 
         CouponRemindDelayEvent.CouponRemindDelayMessage couponRemindDelayMessage = CouponRemindDelayEvent.CouponRemindDelayMessage.builder()
                 .couponTemplateId(couponTemplate.getId())

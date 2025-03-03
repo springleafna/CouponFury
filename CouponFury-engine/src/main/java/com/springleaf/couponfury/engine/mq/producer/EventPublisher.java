@@ -42,7 +42,7 @@ public class EventPublisher {
     public void delayPublish(String topic, BaseEvent.EventMessage<?> eventMessage, Integer delayTime) {
         try {
             String messageJson = JSON.toJSONString(eventMessage);
-            rabbitTemplate.convertAndSend(topic, messageJson, message -> {
+            rabbitTemplate.convertAndSend(topic, topic, messageJson, message -> {
                 message.getMessageProperties().setHeader("x-delay", delayTime);
                 return message;
             });
