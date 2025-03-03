@@ -38,7 +38,7 @@ public class CouponRemindDelayEvent extends BaseEvent<CouponRemindDelayEvent.Cou
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public class CouponRemindDelayMessage {
+    public static class CouponRemindDelayMessage {
 
         /**
          * 优惠券模板id

@@ -43,7 +43,7 @@ public class EventPublisher {
         try {
             String messageJson = JSON.toJSONString(eventMessage);
             rabbitTemplate.convertAndSend(topic, messageJson, message -> {
-                message.getMessageProperties().setDelay(delayTime);
+                message.getMessageProperties().setHeader("x-delay", delayTime);
                 return message;
             });
             log.info("延时发送MQ消息 topic:{} message:{} delayTime:{}", topic, messageJson, delayTime);
