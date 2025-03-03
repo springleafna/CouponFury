@@ -38,7 +38,7 @@ public class CouponTemplateRemindUtil {
      * bitPosition=14 → 1L << 14 = 16384（二进制 000...010000000000000000）。
      * 多个提醒时间和类型可通过 按位或（|） 合并成一个最终位图。
      */
-    public static long calculateBitMap(int remindTime, int type) {
+    public static Long calculateBitMap(int remindTime, int type) {
         validateParameters(remindTime, type);
         int intervalIndex = (remindTime / MINUTES_PER_INTERVAL) - 1;
         int bitPosition = type * BITS_PER_TYPE + intervalIndex;

@@ -11,5 +11,7 @@ public interface CouponTemplateRemindMapper {
 
     void saveCouponTemplateRemind(CouponTemplateRemindDO couponTemplateRemindDO);
 
-    void updateCouponTemplateRemindInformation(CouponTemplateRemindDO couponTemplateRemindDO);
+    int updateCouponTemplateRemindInformation(CouponTemplateRemindDO couponTemplateRemindDO);
+
+    int deleteCouponTemplateRemind(CouponTemplateRemindDO couponTemplateRemindDO);
 }

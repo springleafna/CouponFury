@@ -31,4 +31,12 @@
         AND coupon_template_id = #{couponTemplateId}
     </update>
 
+    <delete id="deleteCouponTemplateRemind">
+        DELETE FROM t_coupon_template_remind
+        WHERE user_id = #{userId}
+        AND coupon_template_id = #{couponTemplateId}
+        AND information = #{information}
+    </delete>
+
+
 </mapper>
