@@ -1,4 +1,4 @@
-package com.springleaf.couponfury.merchant.admin.config;
+package com.springleaf.couponfury.settlement.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
@@ -30,8 +30,8 @@ public class SwaggerConfiguration implements ApplicationRunner {
     public OpenAPI openAPI() {
         return new OpenAPI()
                 .info(new Info() // 基本信息配置
-                    .title("热券-商家后台管理系统") // 标题
-                    .description("创建优惠券、店家查看以及管理优惠券、创建优惠券发放批次等") // 描述 Api 接口文档的基本信息
+                    .title("热券-结算系统") // 标题
+                    .description("负责用户下单时订单金额计算功能，因和订单相关联，该服务流量较大") // 描述 Api 接口文档的基本信息
                     .version("v1.0.0") // 版本
                     // 设置 OpenAPI 文档的联系信息，包括联系人姓名为"springleaf"
                     .contact(new Contact().name("springleaf"))
@@ -41,7 +41,7 @@ public class SwaggerConfiguration implements ApplicationRunner {
     }
 
     /**
-     * 方便启动项目后可以直接点击链接跳转，而不用自己到浏览器输入路径
+     * 方便大家启动项目后可以直接点击链接跳转，而不用自己到浏览器输入路径
      */
     @Override
     public void run(ApplicationArguments args) throws Exception {

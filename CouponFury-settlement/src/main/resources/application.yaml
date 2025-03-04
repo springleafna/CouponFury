@@ -4,3 +4,14 @@ server:
 spring:
   application:
     name: CouponFury-settlement
+  datasource:
+    driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
+    url: jdbc:shardingsphere:classpath:shardingsphere-config.yaml
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 0
+
+mybatis:
+  mapper-locations: classpath:/mapper/*.xml
