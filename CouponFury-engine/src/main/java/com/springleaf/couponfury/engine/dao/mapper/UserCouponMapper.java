@@ -8,4 +8,8 @@ import org.apache.ibatis.annotations.Param;
 public interface UserCouponMapper {
 
     void saveUserCoupon(UserCouponDO userCouponDO);
+
+    UserCouponDO getUserCouponByCouponIdAndUserId(@Param("couponId") Long couponId, @Param("userId") Long userId);
+
+    int updateUserCouponStatus(@Param("couponId") Long couponId, @Param("userId") Long userId, @Param("oldStatus") Integer oldStatus, @Param("freshStatus") Integer freshStatus);
 }

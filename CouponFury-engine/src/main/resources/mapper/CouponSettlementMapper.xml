@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springleaf.couponfury.engine.dao.mapper.CouponSettlementMapper">
+
+    <resultMap id="dataMap" type="com.springleaf.couponfury.engine.dao.entity.CouponSettlementDO">
+        <id column="id" property="id"/>
+        <result column="order_id" property="orderId"/>
+        <result column="user_id" property="userId"/>
+        <result column="coupon_id" property="couponId"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="getCouponSettlementByCouponIdAndUserIdInStatus" resultType="java.lang.Boolean"
+            resultMap="dataMap">
+        SELECT *
+        FROM t_coupon_settlement
+        WHERE coupon_id = #{couponId}
+          AND user_id = #{userId}
+          AND status in (0, 2)
+    </select>
+
+    <insert id="saveCouponSettlement">
+        INSERT INTO t_coupon_settlement (order_id, user_id, coupon_id, status, create_time, update_time)
+        VALUES (#{orderId}, #{userId}, #{couponId}, #{status}, now(), now())
+    </insert>
+
+    <update id="updateCouponSettlementStatus">
+        UPDATE t_coupon_settlement
+        SET status = #{freshStatus}
+        WHERE coupon_id = #{couponId}
+        AND order_id = #{orderId}
+        AND user_id = #{userId}
+        AND status = #{oldStatus}
+    </update>
+
+</mapper>

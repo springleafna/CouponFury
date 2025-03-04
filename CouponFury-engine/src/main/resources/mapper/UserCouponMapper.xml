@@ -25,4 +25,20 @@
                 #{useTime}, #{source}, #{status}, now(), now(), 0)
     </insert>
 
+    <select id="getUserCouponByCouponIdAndUserId"
+            resultMap="dataMap">
+        SELECT *
+        FROM t_user_coupon
+        WHERE coupon_template_id = #{couponId}
+          AND user_id = #{userId}
+    </select>
+
+    <update id="updateUserCouponStatus">
+        UPDATE t_user_coupon
+        SET status = #{freshStatus}
+        WHERE coupon_template_id = #{couponId}
+        AND user_id = #{userId}
+        AND status = #{oldStatus}
+    </update>
+
 </mapper>
