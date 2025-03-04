@@ -14,7 +14,7 @@ public class CouponTemplateQueryRespDTO {
      * 优惠券id
      */
     @Schema(description = "优惠券id")
-    private String id;
+    private Long couponId;
 
     /**
      * 优惠对象 0：商品专属 1：全店通用
