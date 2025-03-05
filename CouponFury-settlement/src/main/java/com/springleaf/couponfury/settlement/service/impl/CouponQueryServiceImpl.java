@@ -51,6 +51,7 @@ public class CouponQueryServiceImpl implements CouponQueryService {
                 .map(each -> String.format(COUPON_TEMPLATE_KEY, each))
                 .toList() : null;
         // 利用executePipelined方法对多个Redis命令进行管道化执行，从而提高查询效率。
+        // 批量获取 Redis 中的优惠券模板信息
         List<Object> couponTemplateList = stringRedisTemplate.executePipelined((RedisCallback<String>) connection -> {
             if (couponTemplateIds != null) {
                 couponTemplateIds.forEach(each -> connection.hashCommands().hGetAll(each.getBytes()));
@@ -59,7 +60,7 @@ public class CouponQueryServiceImpl implements CouponQueryService {
         });
 
         // 按 goods 字段分区：
-        // 使用 Collectors.partitioningBy 方法，将优惠券模板列表分为两部分：
+        // 使用 Collectors.partitioningBy 方法，根据是否存在 优惠商品 将优惠券模板列表分为两部分：
         // true：goods 字段为空的优惠券模板，表示该优惠券是平台券或店铺券（没有特定商品限制）。
         // false：goods 字段不为空的优惠券模板，表示该优惠券是商品专属券（只能用于特定商品）。
         List<CouponTemplateQueryRespDTO> couponTemplateDTOList = JSON.parseArray(JSON.toJSONString(couponTemplateList), CouponTemplateQueryRespDTO.class);
@@ -81,11 +82,13 @@ public class CouponQueryServiceImpl implements CouponQueryService {
             BigDecimal maximumDiscountAmount = jsonObject.getBigDecimal("maximumDiscountAmount");
             switch (each.getType()) {
                 case 0 -> { // 立减券
+                    // 如果是立减券，直接设置优惠金额为最大优惠金额
                     resultQueryCouponDetail.setCouponAmount(maximumDiscountAmount);
                     availableCouponList.add(resultQueryCouponDetail);
                 }
                 case 1 -> { // 满减券
                     // orderAmount 大于或等于 termsOfUse
+                    // 如果是满减券，只有当订单金额大于等于满减条件时才可以使用
                     if (requestParam.getOrderAmount().compareTo(jsonObject.getBigDecimal("termsOfUse")) >= 0) {
                         resultQueryCouponDetail.setCouponAmount(maximumDiscountAmount);
                         availableCouponList.add(resultQueryCouponDetail);
@@ -95,6 +98,9 @@ public class CouponQueryServiceImpl implements CouponQueryService {
                 }
                 case 2 -> { // 折扣券
                     // orderAmount 大于或等于 termsOfUse
+                    // 如果是折扣券，只有当订单金额大于等于满减条件时才可以使用
+                    // 优惠金额 = 订单金额 * 折扣率
+                    // 优惠金额不能超过最大优惠金额 比如订单金额为 1000，最大优惠金额为 200，折扣率为 0.3，则优惠金额为 300，不能超过 200，所以最终优惠金额为 200
                     if (requestParam.getOrderAmount().compareTo(jsonObject.getBigDecimal("termsOfUse")) >= 0) {
                         BigDecimal multiply = requestParam.getOrderAmount().multiply(jsonObject.getBigDecimal("discountRate"));
                         if (multiply.compareTo(maximumDiscountAmount) >= 0) {
@@ -111,38 +117,47 @@ public class CouponQueryServiceImpl implements CouponQueryService {
             }
         });
 
+        // (existing, replacement) -> existing: 这是一个合并函数，用于处理当遇到相同的键时的情况。
+        // existing是指已经存在于Map中的值，而replacement是指尝试插入的值。
+        // 这里的意思是：如果在Map中已经存在相同的键值对，则保留原来的值（existing），而不插入新的值（replacement）。
+        // 这个函数的作用是为了防止在流中有重复的商品编号时，导致Map中无法确定哪个对象应该作为键对应的值。
+        // 将请求参数中的商品列表 requestParam.getGoodsList() 转换为一个 Map<String, QueryCouponGoodsReqDTO>，
+        // 其中 goodsNumber 作为 Key，QueryCouponGoodsReqDTO 对象作为 Value；
         Map<String, QueryCouponGoodsReqDTO> goodsRequestMap = requestParam.getGoodsList().stream()
                 .collect(Collectors.toMap(QueryCouponGoodsReqDTO::getGoodsNumber, Function.identity(), (existing, replacement) -> existing));
 
         // 商品专属券
         goodsNotEmptyList.forEach(each -> {
+            // 从goodsRequestMap中获取当前优惠券对应的商品信息
+            // 如果没有找到对应的商品信息，则表示该优惠券不可用
             QueryCouponGoodsReqDTO couponGoods = goodsRequestMap.get(each.getGoods());
             if (couponGoods == null) {
                 notAvailableCouponList.add(BeanUtil.toBean(each, QueryCouponsDetailRespDTO.class));
-            }
-            JSONObject jsonObject = JSON.parseObject(each.getConsumeRule());
-            QueryCouponsDetailRespDTO resultQueryCouponDetail = BeanUtil.toBean(each, QueryCouponsDetailRespDTO.class);
-            switch (each.getType()) {
-                case 0 -> { // 立减券
-                    resultQueryCouponDetail.setCouponAmount(jsonObject.getBigDecimal("maximumDiscountAmount"));
-                    availableCouponList.add(resultQueryCouponDetail);
-                }
-                case 1 -> { // 满减券
-                    // goodsAmount 大于或等于 termsOfUse
-                    if (couponGoods != null && couponGoods.getGoodsAmount().compareTo(jsonObject.getBigDecimal("termsOfUse")) >= 0) {
+            } else {
+                JSONObject jsonObject = JSON.parseObject(each.getConsumeRule());
+                QueryCouponsDetailRespDTO resultQueryCouponDetail = BeanUtil.toBean(each, QueryCouponsDetailRespDTO.class);
+                switch (each.getType()) {
+                    case 0 -> { // 立减券
                         resultQueryCouponDetail.setCouponAmount(jsonObject.getBigDecimal("maximumDiscountAmount"));
                         availableCouponList.add(resultQueryCouponDetail);
                     }
-                }
-                case 2 -> { // 折扣券
-                    // goodsAmount 大于或等于 termsOfUse
-                    if (couponGoods != null && couponGoods.getGoodsAmount().compareTo(jsonObject.getBigDecimal("termsOfUse")) >= 0) {
-                        BigDecimal discountRate = jsonObject.getBigDecimal("discountRate");
-                        resultQueryCouponDetail.setCouponAmount(couponGoods.getGoodsAmount().multiply(discountRate));
-                        availableCouponList.add(resultQueryCouponDetail);
+                    case 1 -> { // 满减券
+                        // goodsAmount 大于或等于 termsOfUse
+                        if (couponGoods.getGoodsAmount().compareTo(jsonObject.getBigDecimal("termsOfUse")) >= 0) {
+                            resultQueryCouponDetail.setCouponAmount(jsonObject.getBigDecimal("maximumDiscountAmount"));
+                            availableCouponList.add(resultQueryCouponDetail);
+                        }
                     }
+                    case 2 -> { // 折扣券
+                        // goodsAmount 大于或等于 termsOfUse
+                        if (couponGoods.getGoodsAmount().compareTo(jsonObject.getBigDecimal("termsOfUse")) >= 0) {
+                            BigDecimal discountRate = jsonObject.getBigDecimal("discountRate");
+                            resultQueryCouponDetail.setCouponAmount(couponGoods.getGoodsAmount().multiply(discountRate));
+                            availableCouponList.add(resultQueryCouponDetail);
+                        }
+                    }
+                    default -> throw new ClientException("无效的优惠券类型");
                 }
-                default -> throw new ClientException("无效的优惠券类型");
             }
         });
 
