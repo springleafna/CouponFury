@@ -23,7 +23,7 @@ public class QueryCouponsReqDTO {
      * 店铺编号
      */
     @Schema(description = "店铺编号", example = "1810714735922956666", required = true)
-    private String shopNumber;
+    private Long shopNumber;
 
     /**
      * 商品集合
