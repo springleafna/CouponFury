@@ -111,7 +111,6 @@ public class CouponTaskServiceImpl implements CouponTaskService {
         // 如果是立即发送任务，直接调用消息队列进行发送流程
         if (Objects.equals(requestParam.getSendType(), CouponTaskSendTypeEnum.IMMEDIATE.getType())) {
             eventPublisher.publish(couponTaskExecuteMessageEvent.topic(), couponTaskExecuteMessageEvent.buildEventMessage(couponTaskDO.getId()));
-
         }
     }
 

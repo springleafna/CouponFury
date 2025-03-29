@@ -44,7 +44,7 @@
           and id = #{couponTemplateId}
     </select>
 
-    <!-- 通过乐观机制原子扣减优惠券模板库存 -->
+    <!-- 通过 MySQL 的行记录锁机制原子扣减优惠券模板库存 -->
     <update id="decrementCouponTemplateStock">
         UPDATE t_coupon_template
         SET stock = stock - #{decrementStock}
