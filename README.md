@@ -28,3 +28,11 @@ consumeRule.put("maximumDiscountAmount", new BigDecimal("3")); // 最大优惠�
 consumeRule.put("explanationOfUnmetC 3onditions", "xxx"); // 不满足使用条件说明
 consumeRule.put("validityPeriod", 48); // 自领取优惠券后有效时间，单位小时
 ```
+
+面试题：  
+线程池和消息队列MQ在异步处理上有什么区别？在什么场景下使用？  
+在优惠券管理平台项目中，为何使用线程池和Redis异步队列来实现Excel解析？  
+Redis延时队列中存储的是什么？20秒的定时是如何确定的？  
+如果Excel解析在20秒内完成，是否会造成时间浪费？有没有更实时的方式？  
+在做优惠券模板分表时，有没有考虑数据倾斜的问题？（有的商户创建的优惠券模板少，有的商户创建的优惠券模板多）  
+如果我们现在要设计一个后台，用于商家端优惠券管理，应该怎么设计以避免查全表的操作？  
