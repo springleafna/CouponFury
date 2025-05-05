@@ -8,8 +8,8 @@ local function combineFields(firstField, secondField)
 end
 
 -- Lua脚本开始
-local key = KEYS[1] -- Redis Key
-local userSetKey = KEYS[2] -- 用户领券 Set 的 Key
+local key = KEYS[1] -- 优惠券模板id Key
+local userSetKey = KEYS[2] -- 用户领券 Set 的 Key （批量保存领取用户券用户 Key）
 local userIdAndRowNum = ARGV[1] -- 用户 ID 和 Excel 所在行数
 
 -- 获取库存

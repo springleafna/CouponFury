@@ -185,6 +185,11 @@ public class CouponExecuteDistributionConsumer {
         }
     }
 
+    /**
+     * 批量处理 数据库优惠券库存扣减 和用户领取优惠券记录入库
+     * @param event
+     * @throws JsonProcessingException
+     */
     private void decrementCouponTemplateStockAndSaveUserCouponList(CouponTemplateDistributionEvent.CouponTemplateDistributionMessage event) throws JsonProcessingException {
         // 如果等于 0 意味着已经没有了库存，直接返回即可
         Integer couponTemplateStock = decrementCouponTemplateStock(event, event.getBatchUserSetSize());

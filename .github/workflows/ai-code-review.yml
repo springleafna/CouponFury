@@ -64,9 +64,10 @@ jobs:
           COMMIT_BRANCH: ${{ env.BRANCH_NAME }}
           COMMIT_AUTHOR: ${{ env.COMMIT_AUTHOR }}
           COMMIT_MESSAGE: ${{ env.COMMIT_MESSAGE }}
-          # Ai - ChatGLM 配置「https://open.bigmodel.cn/api/paas/v4/chat/completions」、「https://open.bigmodel.cn/usercenter/apikeys」
-          CHATGLM_APIKEY: ${{ secrets.CHATGLM_APIKEY }}
-          # Ai - DeepSeek 配置
-          DEEPSEEK_APIKEY: ${{ secrets.DEEPSEEK_APIKEY }}
+          # Ai api配置
+          DEEPSEEK_CHAT: ${{ secrets.DEEPSEEK_APIKEY }}
+          DEEPSEEK_REASONER: ${{ secrets.DEEPSEEK_APIKEY }}
+          GLM_4: ${{ secrets.CHATGLM_APIKEY }}
+          GLM_4v: ${{ secrets.CHATGLM_APIKEY }}
           # 飞书Webhook地址
           FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
